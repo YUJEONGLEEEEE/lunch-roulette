@@ -325,7 +325,36 @@
   .hint { margin: 0; font-size: 13px; color: var(--ink-3); }
   .hint.warn { color: var(--accent); font-weight: 700; }
 
-  .history { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: baseline; }
+  .history {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .history-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+
+  .history-empty { font-size: 12.5px; color: var(--ink-3); }
+  .history-empty[hidden] { display: none; }
+
+  .link-btn {
+    font-family: var(--body);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-3);
+    background: none;
+    border: none;
+    padding: 2px 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--line-strong);
+    transition: color .18s ease;
+  }
+
+  .link-btn:hover:not(:disabled) { color: var(--accent); text-decoration-color: var(--accent); }
+  .link-btn:disabled { color: var(--line-strong); cursor: default; text-decoration: none; }
 
   .history-label {
     font-family: var(--mono);
@@ -343,44 +372,27 @@
     border: 1px solid var(--line);
     border-radius: 5px;
     padding: 2px 7px;
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
+
+  /* 지우기와 ⓘ 는 한 덩어리로 — 줄이 접혀도 떨어지지 않는다 */
+  .history-tools { display: flex; align-items: center; gap: 7px; flex: none; }
 
   .history-item:first-of-type { border-color: var(--line-strong); color: var(--ink); }
 
-  .history-actions { display: flex; align-items: center; gap: 6px; }
-  .history-actions[hidden] { display: none; }
-
-  .mini {
-    font-family: var(--body);
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--ink-2);
-    background: transparent;
-    border: 1px solid var(--line-strong);
-    border-radius: 999px;
-    padding: 6px 13px;
-    cursor: pointer;
-    transition: background .18s ease, color .18s ease;
-  }
-
-  .mini:hover:not(:disabled) { background: var(--surface-2); color: var(--ink); }
-
-  .mini:disabled {
-    color: var(--ink-3);
-    border-color: var(--line);
-    cursor: default;
-  }
-
   .info-btn {
-    width: 22px;
-    height: 22px;
+    width: 19px;
+    height: 19px;
     flex: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 1;
     color: var(--ink-3);
@@ -670,11 +682,14 @@
 
       <div class="under-wheel">
         <p class="hint" id="hint"></p>
-        <div class="history" id="history"></div>
-
-        <div class="history-actions">
-          <button class="mini" id="clear-history" type="button" data-i18n="clearHistory">이전 결과 지우기</button>
-          <button class="info-btn" id="history-info" type="button" aria-expanded="false" data-i18n-aria="infoLabel">i</button>
+        <div class="history">
+          <span class="history-label" data-i18n="recent">지난 결과</span>
+          <span class="history-chips" id="history-chips"></span>
+          <span class="history-empty" id="history-empty" data-i18n="historyEmpty">아직 없음</span>
+          <span class="history-tools">
+            <button class="link-btn" id="clear-history" type="button" data-i18n="clearShort" data-i18n-aria="clearHistory">지우기</button>
+            <button class="info-btn" id="history-info" type="button" aria-expanded="false" data-i18n-aria="infoLabel">i</button>
+          </span>
         </div>
         <p class="note" id="history-note" data-i18n="clearHistoryInfo" hidden></p>
       </div>
@@ -783,6 +798,8 @@
         hintWeightOff: "모든 식당이 같은 확률입니다.",
         hintHistoryCleared: "지난 결과를 지웠어요. 모든 식당이 같은 확률입니다.",
         clearHistory: "이전 결과 지우기",
+        clearShort: "지우기",
+        historyEmpty: "아직 없음",
         infoLabel: "설명 보기",
         clearHistoryInfo: "이 버튼을 누를 시 이전에 선택된 결과가 모두 삭제됩니다. 기록이 사라지면 ‘어제 먹은 곳 피하기’도 기준이 없어져, 모든 식당이 같은 확률로 돌아갑니다.",
         count: function (n) { return n + "곳"; },
@@ -826,6 +843,8 @@
         hintWeightOff: "Every place has the same odds.",
         hintHistoryCleared: "Past results cleared. Every place has the same odds again.",
         clearHistory: "Clear past results",
+        clearShort: "Clear",
+        historyEmpty: "None yet",
         infoLabel: "What this does",
         clearHistoryInfo: "This deletes every result picked so far. With no history left, ‘Avoid recent picks’ has nothing to work from, so every place goes back to the same odds.",
         count: function (n) { return n === 1 ? "1 place" : n + " places"; },
@@ -869,6 +888,8 @@
         hintWeightOff: "すべてのお店が同じ確率です。",
         hintHistoryCleared: "これまでの結果を削除しました。すべて同じ確率です。",
         clearHistory: "これまでの結果を削除",
+        clearShort: "削除",
+        historyEmpty: "まだありません",
         infoLabel: "説明を見る",
         clearHistoryInfo: "このボタンを押すと、これまでに選ばれた結果がすべて削除されます。履歴がなくなると「最近の店を避ける」も基準を失い、すべてのお店が同じ確率に戻ります。",
         count: function (n) { return n + "件"; },
@@ -912,6 +933,8 @@
         hintWeightOff: "所有餐厅概率相同。",
         hintHistoryCleared: "已清除历史结果。所有餐厅概率相同。",
         clearHistory: "清除历史结果",
+        clearShort: "清除",
+        historyEmpty: "暂无",
         infoLabel: "查看说明",
         clearHistoryInfo: "点击此按钮将删除之前选出的所有结果。没有历史记录后，“避开最近吃过的”也就失去依据，所有餐厅回到相同概率。",
         count: function (n) { return n + " 家"; },
@@ -955,6 +978,8 @@
         hintWeightOff: "Todos los sitios tienen la misma probabilidad.",
         hintHistoryCleared: "Resultados borrados. Todos los sitios vuelven a tener la misma probabilidad.",
         clearHistory: "Borrar resultados anteriores",
+        clearShort: "Borrar",
+        historyEmpty: "Aún no hay",
         infoLabel: "Ver explicación",
         clearHistoryInfo: "Esto borra todos los resultados elegidos hasta ahora. Sin historial, «Evitar los recientes» se queda sin referencia y todos los sitios vuelven a tener la misma probabilidad.",
         count: function (n) { return n === 1 ? "1 sitio" : n + " sitios"; },
@@ -998,6 +1023,8 @@
         hintWeightOff: "Alle Lokale haben die gleiche Chance.",
         hintHistoryCleared: "Verlauf gelöscht. Alle Lokale haben wieder die gleiche Chance.",
         clearHistory: "Bisherige Ergebnisse löschen",
+        clearShort: "Löschen",
+        historyEmpty: "Noch keine",
         infoLabel: "Erklärung anzeigen",
         clearHistoryInfo: "Damit werden alle bisher gezogenen Ergebnisse gelöscht. Ohne Verlauf hat „Zuletzt gewählte meiden“ keine Grundlage mehr, und alle Lokale haben wieder die gleiche Chance.",
         count: function (n) { return n === 1 ? "1 Lokal" : n + " Lokale"; },
@@ -1029,7 +1056,8 @@
     var listEl = document.getElementById("list");
     var emptyEl = document.getElementById("empty");
     var countEl = document.getElementById("count");
-    var historyEl = document.getElementById("history");
+    var chipsEl = document.getElementById("history-chips");
+    var emptyHistEl = document.getElementById("history-empty");
     var clearHistBtn = document.getElementById("clear-history");
     var historyNote = document.getElementById("history-note");
     var infoBtn = document.getElementById("history-info");
@@ -1421,7 +1449,8 @@
       chime();
 
       history.unshift(name);
-      if (history.length > 5) history.length = 5;
+      // 확률에 영향을 주는 만큼만 남긴다 — 보이는 것과 작동하는 것을 일치시킨다
+      if (history.length > DECAY.length) history.length = DECAY.length;
 
       // 새 가중치로 조각 폭이 달라지므로, 당첨 조각이 계속 바늘 아래 오도록 맞춘다
       var after = layout();
@@ -1512,21 +1541,17 @@
     }
 
     function renderHistory() {
-      historyEl.textContent = "";
-      // 버튼은 늘 보이되, 지울 기록이 없으면 비활성
+      chipsEl.textContent = "";
+      // 지우기는 늘 자리를 지키되, 지울 기록이 없으면 비활성
       clearHistBtn.disabled = !history.length;
-      if (!history.length) return;
-
-      var label = document.createElement("span");
-      label.className = "history-label";
-      label.textContent = S().recent;
-      historyEl.appendChild(label);
+      emptyHistEl.hidden = history.length > 0;
 
       history.forEach(function (name) {
         var el = document.createElement("span");
         el.className = "history-item";
         el.textContent = name;
-        historyEl.appendChild(el);
+        el.title = name;                 // 잘린 이름은 마우스를 올리면 전체가 보인다
+        chipsEl.appendChild(el);
       });
     }
 
@@ -1665,7 +1690,7 @@
         items = fromHash;
         try {
           var keep = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
-          history = Array.isArray(keep.history) ? keep.history : [];
+          history = Array.isArray(keep.history) ? keep.history.slice(0, DECAY.length) : [];
           if (typeof keep.weighted === "boolean") weighted = keep.weighted;
         } catch (e) { /* 무시 */ }
         return;
@@ -1673,7 +1698,7 @@
       try {
         var saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
         if (Array.isArray(saved.items)) items = saved.items.filter(function (s) { return typeof s === "string" && s; });
-        if (Array.isArray(saved.history)) history = saved.history;
+        if (Array.isArray(saved.history)) history = saved.history.slice(0, DECAY.length);
         if (typeof saved.weighted === "boolean") weighted = saved.weighted;
       } catch (e) { /* 무시 */ }
     }
