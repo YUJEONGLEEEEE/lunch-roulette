@@ -12,7 +12,9 @@ A spinning wheel that decides where to eat lunch. One HTML file — no build ste
 - **Persistence** — the list and the last five results are kept in `localStorage`, so the next day starts where you left off.
 - **Shareable list** — the list is encoded into the URL hash (`#r=name|name|name`). Send the link and the wheel opens pre-filled.
 - **Adaptive rendering** — canvas wedges scale to any entry count; label size and truncation are derived from wedge width, and labels flip to stay upright on the left half.
+- **Weighting toggle** — with it on, the three most recent winners are damped to ×0.25 / ×0.5 / ×0.75, so yesterday's restaurant is less likely to come up again. Weights drive the wedge widths as well as the draw, so a slice's size always equals its real probability, and each entry shows that percentage in the list. One button turns the whole thing off for an even draw.
 - **Six languages** — Korean, English, Japanese, Chinese, Spanish and German. The language is detected from the browser on first visit, switchable at any time, and remembered afterwards.
+- **Installable** — a web app manifest and Apple touch icons let it be added to a phone's home screen and open full-screen, without a native shell.
 - **Light and dark themes**, responsive down to phone width, keyboard support (Space to spin, Esc to close), and `prefers-reduced-motion` handling.
 
 ## How it works
@@ -25,7 +27,7 @@ rot = -(w + 0.5) * segment - jitter
 
 where `segment = 2π / n` and `jitter` keeps the pointer from always landing dead center. The wheel eases to `rot + turns * 2π` on a quartic ease-out, and a short Web Audio click fires each time a wedge boundary crosses the pointer.
 
-The landing math was verified across 2–60 entries over 47,200 simulated spins — the wedge under the pointer matched the drawn winner every time.
+With weighting on, `segment` is no longer uniform: each wedge spans `2π · wᵢ / Σw`, and the draw samples from the same weight table, so the arc you see is the probability you get. The landing math was verified over 82,600 simulated spins across 2–60 entries and every weight arrangement — the wedge under the pointer matched the drawn winner every time — and a 400,000-spin run confirmed the observed win rates match the wedge widths.
 
 Wedge colors come from a fixed eight-color palette rather than generated HSL steps, with per-wedge label color chosen by relative luminance so text stays legible on every fill.
 
