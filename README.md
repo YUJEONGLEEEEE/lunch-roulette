@@ -2,7 +2,7 @@
 
 A spinning wheel that decides where to eat lunch. One HTML file — no build step, no dependencies, no backend. Open it by double-clicking, or drop it on any static host.
 
-**Live demo:** https://YUJEONGLEEEEE.github.io/lunch-roulette/
+**Live demo:** https://yujeongleeeee.github.io/lunch-roulette/
 
 ## Features
 
