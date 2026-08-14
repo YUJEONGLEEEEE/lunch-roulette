@@ -157,33 +157,73 @@
     font-size: 15px;
   }
 
-  /* ─── language switch ─── */
-  .lang-switch {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px;
-    padding: 3px;
+  /* ─── language menu ─── */
+  .lang { position: relative; flex: none; }
+
+  .lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--ink-2);
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 999px;
+    padding: 8px 14px 8px 11px;
+    cursor: pointer;
     box-shadow: var(--shadow);
+    transition: color .18s ease, border-color .18s ease;
   }
 
-  .lang-btn {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: .08em;
-    color: var(--ink-3);
+  .lang-toggle:hover { color: var(--ink); border-color: var(--line-strong); }
+  .lang-toggle[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+  .lang-toggle svg { width: 15px; height: 15px; flex: none; }
+
+  .lang-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    min-width: 168px;
+    padding: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lift);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: pop .16s ease;
+  }
+
+  .lang-menu[hidden] { display: none; }
+
+  @keyframes pop { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+
+  .lang-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    font-family: var(--body);
+    font-size: 14.5px;
+    color: var(--ink);
     background: transparent;
     border: none;
-    border-radius: 999px;
-    padding: 7px 11px;
+    border-radius: 8px;
+    padding: 9px 11px;
+    text-align: left;
     cursor: pointer;
-    transition: color .18s ease, background .18s ease;
+    transition: background .14s ease;
   }
 
-  .lang-btn:hover { color: var(--ink); }
-  .lang-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .lang-item:hover { background: var(--surface-2); }
+  .lang-item[aria-checked="true"] { color: var(--accent); font-weight: 700; }
+  .lang-item .tick { font-family: var(--mono); font-size: 12px; opacity: 0; }
+  .lang-item[aria-checked="true"] .tick { opacity: 1; }
 
   /* ─── stage ─── */
   .stage {
@@ -537,7 +577,16 @@
       <h1 data-i18n="title">오늘 뭐 먹지?</h1>
       <p class="dek" data-i18n="dek">가고 싶은 식당을 적고 한 번 돌리면 끝.</p>
     </div>
-    <div class="lang-switch" id="lang-switch" role="group" aria-label="Language"></div>
+    <div class="lang" id="lang">
+      <button class="lang-toggle" id="lang-toggle" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Language">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" />
+        </svg>
+        <span id="lang-code">KO</span>
+      </button>
+      <div class="lang-menu" id="lang-menu" role="menu" hidden></div>
+    </div>
   </header>
 
   <div class="stage">
@@ -888,7 +937,9 @@
     var shareOut = document.getElementById("share-out");
     var shareBtn = document.getElementById("share");
     var weightBtn = document.getElementById("weight");
-    var switchEl = document.getElementById("lang-switch");
+    var langBtn = document.getElementById("lang-toggle");
+    var langMenu = document.getElementById("lang-menu");
+    var langCode = document.getElementById("lang-code");
     var live = document.getElementById("live");
 
     /* ── theme + font values read from CSS ── */
@@ -1353,8 +1404,10 @@
         el.setAttribute("aria-label", s[el.getAttribute("data-i18n-aria")]);
       });
 
-      Array.prototype.forEach.call(switchEl.children, function (btn) {
-        btn.setAttribute("aria-pressed", String(btn.getAttribute("data-lang") === lang));
+      var current = LANGS.filter(function (l) { return l.code === lang; })[0] || LANGS[1];
+      langCode.textContent = current.short;
+      Array.prototype.forEach.call(langMenu.children, function (item) {
+        item.setAttribute("aria-checked", String(item.getAttribute("data-lang") === lang));
       });
 
       setBusy(spinning);
@@ -1394,19 +1447,63 @@
       return "en";
     }
 
-    function buildSwitch() {
+    function buildMenu() {
       LANGS.forEach(function (l) {
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "lang-btn";
-        btn.setAttribute("data-lang", l.code);
-        btn.setAttribute("aria-label", l.name);
-        btn.title = l.name;
-        btn.textContent = l.short;
-        btn.addEventListener("click", function () { setLang(l.code); });
-        switchEl.appendChild(btn);
+        var item = document.createElement("button");
+        item.type = "button";
+        item.className = "lang-item";
+        item.setAttribute("role", "menuitemradio");
+        item.setAttribute("data-lang", l.code);
+        item.setAttribute("aria-checked", "false");
+        item.lang = l.code;
+
+        var name = document.createElement("span");
+        name.textContent = l.name;
+        var tick = document.createElement("span");
+        tick.className = "tick";
+        tick.textContent = "✓";
+
+        item.appendChild(name);
+        item.appendChild(tick);
+        item.addEventListener("click", function () {
+          setLang(l.code);
+          closeMenu(true);
+        });
+        langMenu.appendChild(item);
       });
     }
+
+    function openMenu() {
+      langMenu.hidden = false;
+      langBtn.setAttribute("aria-expanded", "true");
+      var checked = langMenu.querySelector('[aria-checked="true"]');
+      (checked || langMenu.firstChild).focus();
+    }
+
+    function closeMenu(refocus) {
+      if (langMenu.hidden) return;
+      langMenu.hidden = true;
+      langBtn.setAttribute("aria-expanded", "false");
+      if (refocus) langBtn.focus();
+    }
+
+    langBtn.addEventListener("click", function () {
+      if (langMenu.hidden) openMenu(); else closeMenu(true);
+    });
+
+    langMenu.addEventListener("keydown", function (e) {
+      var items = Array.prototype.slice.call(langMenu.children);
+      var at = items.indexOf(document.activeElement);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        var next = (at + (e.key === "ArrowDown" ? 1 : items.length - 1) + items.length) % items.length;
+        items[next].focus();
+      }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!langMenu.hidden && !document.getElementById("lang").contains(e.target)) closeMenu(false);
+    });
 
     /* ── storage & sharing ── */
     function save() {
@@ -1528,7 +1625,8 @@
     });
 
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && !overlay.hidden) closeResult();
+      if (e.key === "Escape" && !langMenu.hidden) closeMenu(true);
+      else if (e.key === "Escape" && !overlay.hidden) closeResult();
       if (e.key === " " && e.target === document.body) { e.preventDefault(); spin(); }
     });
 
@@ -1544,7 +1642,7 @@
     /* ── boot ── */
     readTheme();
     load();
-    buildSwitch();
+    buildMenu();
     hintKey = items.length >= 2 ? "hintReady" : "hintStart";
     applyLang();
     sizeCanvas();
