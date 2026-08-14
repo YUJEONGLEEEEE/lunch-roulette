@@ -347,6 +347,69 @@
 
   .history-item:first-of-type { border-color: var(--line-strong); color: var(--ink); }
 
+  .history-actions { display: flex; align-items: center; gap: 6px; }
+  .history-actions[hidden] { display: none; }
+
+  .mini {
+    font-family: var(--body);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-2);
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 6px 13px;
+    cursor: pointer;
+    transition: background .18s ease, color .18s ease;
+  }
+
+  .mini:hover { background: var(--surface-2); color: var(--ink); }
+
+  .info-btn {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink-3);
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: color .18s ease, border-color .18s ease, background .18s ease;
+  }
+
+  .info-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+
+  .info-btn[aria-expanded="true"] {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .note {
+    margin: 0;
+    max-width: 36ch;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 11px 13px;
+    box-shadow: var(--shadow);
+    animation: pop .16s ease;
+  }
+
+  .note[hidden] { display: none; }
+
   /* ─── panel ─── */
   .panel {
     background: var(--surface);
@@ -602,6 +665,12 @@
       <div class="under-wheel">
         <p class="hint" id="hint"></p>
         <div class="history" id="history"></div>
+
+        <div class="history-actions" id="history-actions" hidden>
+          <button class="mini" id="clear-history" type="button" data-i18n="clearHistory">이전 결과 지우기</button>
+          <button class="info-btn" id="history-info" type="button" aria-expanded="false" data-i18n-aria="infoLabel">i</button>
+        </div>
+        <p class="note" id="history-note" data-i18n="clearHistoryInfo" hidden></p>
       </div>
     </div>
 
@@ -701,11 +770,15 @@
         exclude: "이건 빼고 다시",
         close: "닫기",
         canvasEmpty: "식당 이름을 추가해 주세요",
-        weight: "최근 결과 감점",
+        weight: "어제 먹은 곳 피하기",
         on: "켬",
         off: "끔",
         hintWeightOn: "최근에 나온 곳일수록 조각이 좁아집니다.",
         hintWeightOff: "모든 식당이 같은 확률입니다.",
+        hintHistoryCleared: "지난 결과를 지웠어요. 모든 식당이 같은 확률입니다.",
+        clearHistory: "이전 결과 지우기",
+        infoLabel: "설명 보기",
+        clearHistoryInfo: "이 버튼을 누를 시 이전에 선택된 결과가 모두 삭제됩니다. 기록이 사라지면 ‘어제 먹은 곳 피하기’도 기준이 없어져, 모든 식당이 같은 확률로 돌아갑니다.",
         count: function (n) { return n + "곳"; },
         remove: function (name) { return name + " 삭제"; },
         result: function (name) { return "결과: " + name; }
@@ -740,11 +813,15 @@
         exclude: "Skip this one",
         close: "Close",
         canvasEmpty: "Add a few places to begin",
-        weight: "Fade recent picks",
+        weight: "Avoid recent picks",
         on: "On",
         off: "Off",
         hintWeightOn: "The more recently a place won, the narrower its slice.",
         hintWeightOff: "Every place has the same odds.",
+        hintHistoryCleared: "Past results cleared. Every place has the same odds again.",
+        clearHistory: "Clear past results",
+        infoLabel: "What this does",
+        clearHistoryInfo: "This deletes every result picked so far. With no history left, ‘Avoid recent picks’ has nothing to work from, so every place goes back to the same odds.",
         count: function (n) { return n === 1 ? "1 place" : n + " places"; },
         remove: function (name) { return "Remove " + name; },
         result: function (name) { return "Result: " + name; }
@@ -779,11 +856,15 @@
         exclude: "これを外してまわす",
         close: "閉じる",
         canvasEmpty: "お店を追加してください",
-        weight: "最近の結果を弱める",
+        weight: "最近の店を避ける",
         on: "オン",
         off: "オフ",
         hintWeightOn: "最近出たお店ほど区画が狭くなります。",
         hintWeightOff: "すべてのお店が同じ確率です。",
+        hintHistoryCleared: "これまでの結果を削除しました。すべて同じ確率です。",
+        clearHistory: "これまでの結果を削除",
+        infoLabel: "説明を見る",
+        clearHistoryInfo: "このボタンを押すと、これまでに選ばれた結果がすべて削除されます。履歴がなくなると「最近の店を避ける」も基準を失い、すべてのお店が同じ確率に戻ります。",
         count: function (n) { return n + "件"; },
         remove: function (name) { return name + " を削除"; },
         result: function (name) { return "結果：" + name; }
@@ -818,11 +899,15 @@
         exclude: "排除这家再转",
         close: "关闭",
         canvasEmpty: "请先添加餐厅",
-        weight: "降低最近结果",
+        weight: "避开最近吃过的",
         on: "开",
         off: "关",
         hintWeightOn: "越近期出现过的餐厅，扇区越窄。",
         hintWeightOff: "所有餐厅概率相同。",
+        hintHistoryCleared: "已清除历史结果。所有餐厅概率相同。",
+        clearHistory: "清除历史结果",
+        infoLabel: "查看说明",
+        clearHistoryInfo: "点击此按钮将删除之前选出的所有结果。没有历史记录后，“避开最近吃过的”也就失去依据，所有餐厅回到相同概率。",
         count: function (n) { return n + " 家"; },
         remove: function (name) { return "删除 " + name; },
         result: function (name) { return "结果：" + name; }
@@ -857,11 +942,15 @@
         exclude: "Descartar y girar",
         close: "Cerrar",
         canvasEmpty: "Añade algunos sitios",
-        weight: "Reducir los recientes",
+        weight: "Evitar los recientes",
         on: "Sí",
         off: "No",
         hintWeightOn: "Cuanto más reciente fue el resultado, más estrecha es su porción.",
         hintWeightOff: "Todos los sitios tienen la misma probabilidad.",
+        hintHistoryCleared: "Resultados borrados. Todos los sitios vuelven a tener la misma probabilidad.",
+        clearHistory: "Borrar resultados anteriores",
+        infoLabel: "Ver explicación",
+        clearHistoryInfo: "Esto borra todos los resultados elegidos hasta ahora. Sin historial, «Evitar los recientes» se queda sin referencia y todos los sitios vuelven a tener la misma probabilidad.",
         count: function (n) { return n === 1 ? "1 sitio" : n + " sitios"; },
         remove: function (name) { return "Eliminar " + name; },
         result: function (name) { return "Resultado: " + name; }
@@ -896,11 +985,15 @@
         exclude: "Diesen überspringen",
         close: "Schließen",
         canvasEmpty: "Füge ein paar Lokale hinzu",
-        weight: "Zuletzt gewählte abwerten",
+        weight: "Zuletzt gewählte meiden",
         on: "An",
         off: "Aus",
         hintWeightOn: "Je kürzlich gewählter, desto schmaler das Segment.",
         hintWeightOff: "Alle Lokale haben die gleiche Chance.",
+        hintHistoryCleared: "Verlauf gelöscht. Alle Lokale haben wieder die gleiche Chance.",
+        clearHistory: "Bisherige Ergebnisse löschen",
+        infoLabel: "Erklärung anzeigen",
+        clearHistoryInfo: "Damit werden alle bisher gezogenen Ergebnisse gelöscht. Ohne Verlauf hat „Zuletzt gewählte meiden“ keine Grundlage mehr, und alle Lokale haben wieder die gleiche Chance.",
         count: function (n) { return n === 1 ? "1 Lokal" : n + " Lokale"; },
         remove: function (name) { return name + " entfernen"; },
         result: function (name) { return "Ergebnis: " + name; }
@@ -931,6 +1024,9 @@
     var emptyEl = document.getElementById("empty");
     var countEl = document.getElementById("count");
     var historyEl = document.getElementById("history");
+    var historyActions = document.getElementById("history-actions");
+    var historyNote = document.getElementById("history-note");
+    var infoBtn = document.getElementById("history-info");
     var input = document.getElementById("name");
     var overlay = document.getElementById("overlay");
     var resultName = document.getElementById("result-name");
@@ -1039,11 +1135,25 @@
         ctx.arc(cx, cy, r - 2, 0, TAU);
         ctx.stroke();
         ctx.setLineDash([]);
+
+        // 문구는 허브 버튼에 가리지 않도록 허브 아래에, 필요하면 두 줄로
+        var maxW = side * 0.62;
+        var fs = Math.round(side * 0.042);
+        var lines = wrapText(S().canvasEmpty, maxW, fs);
+        while (fs > 11 && widest(lines, fs) > maxW) {
+          fs -= 1;
+          lines = wrapText(S().canvasEmpty, maxW, fs);
+        }
+
         ctx.fillStyle = css["--ink-3"];
-        ctx.font = wheelFont(700, Math.round(side * 0.04));
+        ctx.font = wheelFont(700, fs);
         ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(S().canvasEmpty, cx, cy);
+        ctx.textBaseline = "top";
+        var lh = fs * 1.36;
+        var top = cy + hubR + side * 0.055;
+        for (var li = 0; li < lines.length; li++) {
+          ctx.fillText(lines[li], cx, top + li * lh);
+        }
         ctx.restore();
         return;
       }
@@ -1123,6 +1233,31 @@
       ctx.arc(0, 0, r - 1.5, 0, TAU);
       ctx.stroke();
       ctx.restore();
+    }
+
+    /* 띄어쓰기 기준 두 줄까지 접는다. 공백이 없는 언어는 한 줄 그대로 */
+    function wrapText(text, maxW, fs) {
+      ctx.font = wheelFont(700, fs);
+      if (ctx.measureText(text).width <= maxW) return [text];
+
+      var words = text.split(" ");
+      if (words.length < 2) return [text];
+
+      var best = null;
+      for (var cut = 1; cut < words.length; cut++) {
+        var a = words.slice(0, cut).join(" ");
+        var b = words.slice(cut).join(" ");
+        var worst = Math.max(ctx.measureText(a).width, ctx.measureText(b).width);
+        if (!best || worst < best.worst) best = { lines: [a, b], worst: worst };
+      }
+      return best.lines;
+    }
+
+    function widest(lines, fs) {
+      ctx.font = wheelFont(700, fs);
+      var w = 0;
+      for (var i = 0; i < lines.length; i++) w = Math.max(w, ctx.measureText(lines[i]).width);
+      return w;
     }
 
     function fit(text, width) {
@@ -1372,7 +1507,12 @@
 
     function renderHistory() {
       historyEl.textContent = "";
-      if (!history.length) return;
+      historyActions.hidden = !history.length;
+      if (!history.length) {
+        historyNote.hidden = true;
+        infoBtn.setAttribute("aria-expanded", "false");
+        return;
+      }
 
       var label = document.createElement("span");
       label.className = "history-label";
@@ -1569,6 +1709,21 @@
       items = [];
       render();
       setHint("hintStart", false);
+    });
+
+    document.getElementById("clear-history").addEventListener("click", function () {
+      if (!history.length) return;
+      history = [];
+      renderHistory();
+      render();                                   // 가중치가 사라지므로 조각과 확률 표시를 다시 그린다
+      setHint("hintHistoryCleared", false);
+      save();
+    });
+
+    infoBtn.addEventListener("click", function () {
+      var open = historyNote.hidden;
+      historyNote.hidden = !open;
+      infoBtn.setAttribute("aria-expanded", String(open));
     });
 
     weightBtn.addEventListener("click", function () {
