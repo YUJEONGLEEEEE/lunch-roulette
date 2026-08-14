@@ -12,6 +12,7 @@ A spinning wheel that decides where to eat lunch. One HTML file — no build ste
 - **Persistence** — the list and the last five results are kept in `localStorage`, so the next day starts where you left off.
 - **Shareable list** — the list is encoded into the URL hash (`#r=name|name|name`). Send the link and the wheel opens pre-filled.
 - **Adaptive rendering** — canvas wedges scale to any entry count; label size and truncation are derived from wedge width, and labels flip to stay upright on the left half.
+- **Six languages** — Korean, English, Japanese, Chinese, Spanish and German. The language is detected from the browser on first visit, switchable at any time, and remembered afterwards.
 - **Light and dark themes**, responsive down to phone width, keyboard support (Space to spin, Esc to close), and `prefers-reduced-motion` handling.
 
 ## How it works
@@ -27,6 +28,10 @@ where `segment = 2π / n` and `jitter` keeps the pointer from always landing dea
 The landing math was verified across 2–60 entries over 47,200 simulated spins — the wedge under the pointer matched the drawn winner every time.
 
 Wedge colors come from a fixed eight-color palette rather than generated HSL steps, with per-wedge label color chosen by relative luminance so text stays legible on every fill.
+
+## Localization
+
+Every string lives in one `STRINGS` table keyed by language code, including the pluralized entry counter and the screen-reader labels, so adding a language means adding one object. The type stack is a CSS variable swapped by `:root[data-lang]`, which lets Japanese and Chinese render in Hiragino / PingFang instead of falling back through a Korean face. Append `#lang=de` (or `ja`, `zh`, `es`, `en`, `ko`) to the URL to force a language — useful for linking someone straight to their own.
 
 ## Running locally
 

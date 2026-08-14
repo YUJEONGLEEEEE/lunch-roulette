@@ -73,6 +73,22 @@
     --shadow-lift: 0 2px 4px rgba(0, 0, 0, .55), 0 26px 60px -20px rgba(0, 0, 0, .8);
   }
 
+  /* ─── type stacks per language ─── */
+  :root[data-lang="en"], :root[data-lang="es"], :root[data-lang="de"] {
+    --display: -apple-system, "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+    --body: -apple-system, "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  }
+
+  :root[data-lang="ja"] {
+    --display: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+    --body: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+  }
+
+  :root[data-lang="zh"] {
+    --display: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+    --body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  }
+
   * { box-sizing: border-box; }
 
   body {
@@ -96,7 +112,15 @@
   }
 
   /* ─── masthead ─── */
-  .masthead { display: flex; flex-direction: column; gap: 8px; }
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px 28px;
+  }
+
+  .masthead-text { display: flex; flex-direction: column; gap: 8px; flex: 1 1 340px; min-width: 0; }
 
   .eyebrow {
     font-family: var(--mono);
@@ -123,6 +147,34 @@
     color: var(--ink-2);
     font-size: 15px;
   }
+
+  /* ─── language switch ─── */
+  .lang-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 3px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+  }
+
+  .lang-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    padding: 7px 11px;
+    cursor: pointer;
+    transition: color .18s ease, background .18s ease;
+  }
+
+  .lang-btn:hover { color: var(--ink); }
+  .lang-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 
   /* ─── stage ─── */
   .stage {
@@ -181,7 +233,7 @@
     color: var(--ink);
     font-family: var(--display);
     font-weight: 900;
-    font-size: clamp(13px, 3.4vw, 17px);
+    font-size: clamp(12px, 3.1vw, 16px);
     letter-spacing: -.03em;
     cursor: pointer;
     z-index: 2;
@@ -202,7 +254,7 @@
     background: var(--accent);
     border: none;
     border-radius: 999px;
-    padding: 15px 46px;
+    padding: 15px 40px;
     cursor: pointer;
     box-shadow: var(--shadow);
     transition: transform .12s ease, filter .18s ease;
@@ -457,9 +509,12 @@
 <body>
 <div class="page">
   <header class="masthead">
-    <p class="eyebrow">Lunch Roulette</p>
-    <h1>오늘 뭐 먹지?</h1>
-    <p class="dek">가고 싶은 식당을 적고 한 번 돌리면 끝. 개수 제한 없고, 목록은 이 브라우저에 자동으로 저장됩니다.</p>
+    <div class="masthead-text">
+      <p class="eyebrow">Lunch Roulette</p>
+      <h1 data-i18n="title">오늘 뭐 먹지?</h1>
+      <p class="dek" data-i18n="dek">가고 싶은 식당을 적고 한 번 돌리면 끝.</p>
+    </div>
+    <div class="lang-switch" id="lang-switch" role="group" aria-label="Language"></div>
   </header>
 
   <div class="stage">
@@ -473,32 +528,32 @@
       <button class="spin-btn" id="spin" type="button">돌려서 점심 정하기</button>
 
       <div class="under-wheel">
-        <p class="hint" id="hint">식당을 2곳 이상 추가하면 돌릴 수 있어요.</p>
+        <p class="hint" id="hint"></p>
         <div class="history" id="history"></div>
       </div>
     </div>
 
     <section class="panel">
       <div class="panel-head">
-        <h2 class="panel-title">식당 목록</h2>
-        <span class="count" id="count">0곳</span>
+        <h2 class="panel-title" data-i18n="listTitle">식당 목록</h2>
+        <span class="count" id="count"></span>
       </div>
 
       <form class="add-row" id="add-form">
-        <label class="sr" for="name">식당 이름</label>
-        <input type="text" id="name" placeholder="예) 김밥천국, 정든식당" autocomplete="off" maxlength="200" />
-        <button class="add-btn" type="submit">추가</button>
+        <label class="sr" for="name" data-i18n="nameLabel">식당 이름</label>
+        <input type="text" id="name" data-i18n-ph="placeholder" autocomplete="off" maxlength="200" />
+        <button class="add-btn" type="submit" data-i18n="add">추가</button>
       </form>
 
-      <p class="hint">쉼표로 구분하면 한 번에 여러 곳을 넣을 수 있어요.</p>
+      <p class="hint" data-i18n="pasteHint">쉼표로 구분하면 한 번에 여러 곳을 넣을 수 있어요.</p>
 
       <ul class="list" id="list"></ul>
-      <p class="empty" id="empty">아직 비어 있어요. 첫 식당을 추가해 주세요.</p>
+      <p class="empty" id="empty" data-i18n="empty">아직 비어 있어요.</p>
 
       <div class="panel-foot">
-        <button class="ghost" id="share" type="button">공유 링크 복사</button>
-        <button class="ghost" id="clear" type="button">전체 삭제</button>
-        <input class="share-out" id="share-out" type="text" readonly hidden aria-label="공유 링크" />
+        <button class="ghost" id="share" type="button" data-i18n="share">공유 링크 복사</button>
+        <button class="ghost" id="clear" type="button" data-i18n="clear">전체 삭제</button>
+        <input class="share-out" id="share-out" type="text" readonly hidden data-i18n-aria="shareLabel" />
       </div>
     </section>
   </div>
@@ -506,12 +561,12 @@
 
 <div class="overlay" id="overlay" hidden>
   <div class="result-card" role="dialog" aria-modal="true" aria-labelledby="result-name">
-    <p class="eyebrow">오늘 점심은</p>
+    <p class="eyebrow" data-i18n="resultEyebrow">오늘 점심은</p>
     <h2 class="result-name" id="result-name"></h2>
     <div class="result-actions">
-      <button class="spin-btn" id="again" type="button">다시 돌리기</button>
-      <button class="ghost" id="exclude" type="button">이건 빼고 다시</button>
-      <button class="ghost" id="close" type="button">닫기</button>
+      <button class="spin-btn" id="again" type="button" data-i18n="again">다시 돌리기</button>
+      <button class="ghost" id="exclude" type="button" data-i18n="exclude">이건 빼고 다시</button>
+      <button class="ghost" id="close" type="button" data-i18n="close">닫기</button>
     </div>
   </div>
 </div>
@@ -532,11 +587,233 @@
       "#3B62A8", "#7A5AA8", "#C2456E", "#B3762C"
     ];
 
+    /* ─── i18n ─── */
+    var LANGS = [
+      { code: "ko", short: "KO", name: "한국어" },
+      { code: "en", short: "EN", name: "English" },
+      { code: "ja", short: "JA", name: "日本語" },
+      { code: "zh", short: "ZH", name: "中文" },
+      { code: "es", short: "ES", name: "Español" },
+      { code: "de", short: "DE", name: "Deutsch" }
+    ];
+
+    var STRINGS = {
+      ko: {
+        title: "오늘 뭐 먹지?",
+        dek: "가고 싶은 식당을 적고 한 번 돌리면 끝. 개수 제한이 없고, 목록은 이 브라우저에 자동으로 저장됩니다.",
+        spin: "돌려서 점심 정하기",
+        spinning: "돌아가는 중…",
+        hub: "돌리기",
+        hintStart: "식당을 2곳 이상 추가하면 돌릴 수 있어요.",
+        hintReady: "준비됐어요. 돌려 보세요.",
+        hintAgain: "다시 돌려도 됩니다.",
+        hintNeedTwo: "식당을 2곳 이상 추가해 주세요.",
+        hintDup: "이미 있는 식당이에요.",
+        hintFew: "남은 식당이 부족해요. 더 추가해 주세요.",
+        hintNoShare: "공유할 목록이 아직 없어요.",
+        listTitle: "식당 목록",
+        nameLabel: "식당 이름",
+        placeholder: "예) 김밥천국, 정든식당",
+        add: "추가",
+        pasteHint: "쉼표로 구분하면 한 번에 여러 곳을 넣을 수 있어요.",
+        empty: "아직 비어 있어요. 첫 식당을 추가해 주세요.",
+        share: "공유 링크 복사",
+        shareDone: "복사했어요",
+        shareManual: "링크를 직접 복사하세요",
+        shareLabel: "공유 링크",
+        clear: "전체 삭제",
+        recent: "지난 결과",
+        resultEyebrow: "오늘 점심은",
+        again: "다시 돌리기",
+        exclude: "이건 빼고 다시",
+        close: "닫기",
+        canvasEmpty: "식당 이름을 추가해 주세요",
+        count: function (n) { return n + "곳"; },
+        remove: function (name) { return name + " 삭제"; },
+        result: function (name) { return "결과: " + name; }
+      },
+      en: {
+        title: "What's for lunch?",
+        dek: "Add the places you'd actually go, spin once, and it's settled. No limit on entries — your list stays saved in this browser.",
+        spin: "Spin to decide lunch",
+        spinning: "Spinning…",
+        hub: "Spin",
+        hintStart: "Add at least two places to start spinning.",
+        hintReady: "All set. Give it a spin.",
+        hintAgain: "Spin again anytime.",
+        hintNeedTwo: "Add at least two places first.",
+        hintDup: "That one's already on the list.",
+        hintFew: "Not enough places left. Add a few more.",
+        hintNoShare: "There's no list to share yet.",
+        listTitle: "Places",
+        nameLabel: "Restaurant name",
+        placeholder: "e.g. Joe's Pizza, Taco Truck",
+        add: "Add",
+        pasteHint: "Separate with commas to add several at once.",
+        empty: "Empty for now. Add your first place.",
+        share: "Copy share link",
+        shareDone: "Copied",
+        shareManual: "Copy the link below",
+        shareLabel: "Share link",
+        clear: "Clear all",
+        recent: "Recent",
+        resultEyebrow: "Today's lunch is",
+        again: "Spin again",
+        exclude: "Skip this one",
+        close: "Close",
+        canvasEmpty: "Add a few places to begin",
+        count: function (n) { return n === 1 ? "1 place" : n + " places"; },
+        remove: function (name) { return "Remove " + name; },
+        result: function (name) { return "Result: " + name; }
+      },
+      ja: {
+        title: "今日のランチは？",
+        dek: "行きたいお店を書いて、一度まわすだけ。件数に制限はなく、リストはこのブラウザに自動保存されます。",
+        spin: "まわしてランチを決める",
+        spinning: "回転中…",
+        hub: "まわす",
+        hintStart: "お店を2件以上追加するとまわせます。",
+        hintReady: "準備完了。まわしてみましょう。",
+        hintAgain: "何度でもまわせます。",
+        hintNeedTwo: "お店を2件以上追加してください。",
+        hintDup: "すでにリストにあります。",
+        hintFew: "残りが足りません。追加してください。",
+        hintNoShare: "共有できるリストがまだありません。",
+        listTitle: "お店リスト",
+        nameLabel: "お店の名前",
+        placeholder: "例）一蘭、サイゼリヤ",
+        add: "追加",
+        pasteHint: "カンマ区切りでまとめて追加できます。",
+        empty: "まだ空です。最初のお店を追加してください。",
+        share: "共有リンクをコピー",
+        shareDone: "コピーしました",
+        shareManual: "下のリンクをコピーしてください",
+        shareLabel: "共有リンク",
+        clear: "すべて削除",
+        recent: "これまでの結果",
+        resultEyebrow: "今日のランチは",
+        again: "もう一度まわす",
+        exclude: "これを外してまわす",
+        close: "閉じる",
+        canvasEmpty: "お店を追加してください",
+        count: function (n) { return n + "件"; },
+        remove: function (name) { return name + " を削除"; },
+        result: function (name) { return "結果：" + name; }
+      },
+      zh: {
+        title: "今天吃什么？",
+        dek: "写下想去的餐厅，转一次就决定。数量不限，列表会自动保存在这个浏览器里。",
+        spin: "转动决定午餐",
+        spinning: "转动中…",
+        hub: "转动",
+        hintStart: "添加两家以上就可以转动了。",
+        hintReady: "准备好了，转一下吧。",
+        hintAgain: "可以随时再转一次。",
+        hintNeedTwo: "请先添加两家以上的餐厅。",
+        hintDup: "这家已经在列表里了。",
+        hintFew: "剩下的餐厅不够了，请再添加几家。",
+        hintNoShare: "还没有可以分享的列表。",
+        listTitle: "餐厅列表",
+        nameLabel: "餐厅名称",
+        placeholder: "例）沙县小吃、兰州拉面",
+        add: "添加",
+        pasteHint: "用逗号分隔可以一次添加多家。",
+        empty: "现在还是空的，先添加第一家吧。",
+        share: "复制分享链接",
+        shareDone: "已复制",
+        shareManual: "请手动复制下方链接",
+        shareLabel: "分享链接",
+        clear: "清空列表",
+        recent: "最近结果",
+        resultEyebrow: "今天的午餐是",
+        again: "再转一次",
+        exclude: "排除这家再转",
+        close: "关闭",
+        canvasEmpty: "请先添加餐厅",
+        count: function (n) { return n + " 家"; },
+        remove: function (name) { return "删除 " + name; },
+        result: function (name) { return "结果：" + name; }
+      },
+      es: {
+        title: "¿Qué comemos hoy?",
+        dek: "Escribe los sitios a los que irías y gira una vez. Sin límite de opciones: tu lista se guarda en este navegador.",
+        spin: "Girar para decidir",
+        spinning: "Girando…",
+        hub: "Girar",
+        hintStart: "Añade al menos dos sitios para poder girar.",
+        hintReady: "Todo listo. Dale un giro.",
+        hintAgain: "Puedes girar otra vez cuando quieras.",
+        hintNeedTwo: "Añade al menos dos sitios primero.",
+        hintDup: "Ese ya está en la lista.",
+        hintFew: "No quedan suficientes sitios. Añade algunos más.",
+        hintNoShare: "Todavía no hay lista que compartir.",
+        listTitle: "Sitios",
+        nameLabel: "Nombre del sitio",
+        placeholder: "p. ej. Casa Paco, La Tagliatella",
+        add: "Añadir",
+        pasteHint: "Sepáralos con comas para añadir varios a la vez.",
+        empty: "Está vacío. Añade el primer sitio.",
+        share: "Copiar enlace",
+        shareDone: "Copiado",
+        shareManual: "Copia el enlace de abajo",
+        shareLabel: "Enlace para compartir",
+        clear: "Borrar todo",
+        recent: "Recientes",
+        resultEyebrow: "Hoy toca",
+        again: "Girar otra vez",
+        exclude: "Descartar y girar",
+        close: "Cerrar",
+        canvasEmpty: "Añade algunos sitios",
+        count: function (n) { return n === 1 ? "1 sitio" : n + " sitios"; },
+        remove: function (name) { return "Eliminar " + name; },
+        result: function (name) { return "Resultado: " + name; }
+      },
+      de: {
+        title: "Was essen wir heute?",
+        dek: "Trag die Lokale ein, zu denen du wirklich gehen würdest, dreh einmal — fertig. Keine Begrenzung, und deine Liste bleibt in diesem Browser gespeichert.",
+        spin: "Drehen und entscheiden",
+        spinning: "Dreht…",
+        hub: "Drehen",
+        hintStart: "Füge mindestens zwei Lokale hinzu, um zu drehen.",
+        hintReady: "Alles bereit. Dreh das Rad.",
+        hintAgain: "Du kannst jederzeit nochmal drehen.",
+        hintNeedTwo: "Bitte zuerst mindestens zwei Lokale hinzufügen.",
+        hintDup: "Das steht schon auf der Liste.",
+        hintFew: "Es sind zu wenige übrig. Füge noch welche hinzu.",
+        hintNoShare: "Es gibt noch keine Liste zum Teilen.",
+        listTitle: "Lokale",
+        nameLabel: "Name des Lokals",
+        placeholder: "z. B. Curry 36, Zur Post",
+        add: "Hinzufügen",
+        pasteHint: "Mit Kommas trennen, um mehrere auf einmal hinzuzufügen.",
+        empty: "Noch leer. Füge das erste Lokal hinzu.",
+        share: "Link kopieren",
+        shareDone: "Kopiert",
+        shareManual: "Kopiere den Link unten",
+        shareLabel: "Link zum Teilen",
+        clear: "Alle löschen",
+        recent: "Zuletzt",
+        resultEyebrow: "Heute gibt es",
+        again: "Nochmal drehen",
+        exclude: "Diesen überspringen",
+        close: "Schließen",
+        canvasEmpty: "Füge ein paar Lokale hinzu",
+        count: function (n) { return n === 1 ? "1 Lokal" : n + " Lokale"; },
+        remove: function (name) { return name + " entfernen"; },
+        result: function (name) { return "Ergebnis: " + name; }
+      }
+    };
+
     var items = [];
     var history = [];
+    var lang = "ko";
+    var hintKey = "hintStart";
+    var hintWarn = false;
     var soundOn = true;
     var rot = 0;
     var spinning = false;
+
+    function S() { return STRINGS[lang] || STRINGS.en; }
 
     var canvas = document.getElementById("wheel");
     var ctx = canvas.getContext("2d");
@@ -551,15 +828,21 @@
     var overlay = document.getElementById("overlay");
     var resultName = document.getElementById("result-name");
     var shareOut = document.getElementById("share-out");
+    var shareBtn = document.getElementById("share");
+    var switchEl = document.getElementById("lang-switch");
     var live = document.getElementById("live");
 
-    /* ── theme-aware canvas colors ── */
+    /* ── theme + font values read from CSS ── */
     var css = {};
     function readTheme() {
       var s = getComputedStyle(document.documentElement);
-      ["--surface", "--ground", "--ink", "--ink-3", "--line", "--line-strong"].forEach(function (k) {
+      ["--surface", "--ground", "--ink", "--ink-3", "--line", "--line-strong", "--body"].forEach(function (k) {
         css[k] = s.getPropertyValue(k).trim();
       });
+    }
+
+    function wheelFont(weight, size) {
+      return weight + " " + size + "px " + (css["--body"] || "system-ui, sans-serif");
     }
 
     /* ── color helpers ── */
@@ -609,10 +892,10 @@
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.fillStyle = css["--ink-3"];
-        ctx.font = "700 " + Math.round(side * 0.042) + 'px "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif';
+        ctx.font = wheelFont(700, Math.round(side * 0.04));
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("식당 이름을 추가해 주세요", cx, cy);
+        ctx.fillText(S().canvasEmpty, cx, cy);
         ctx.restore();
         return;
       }
@@ -650,7 +933,7 @@
         ctx.save();
         ctx.rotate(mid);
         ctx.fillStyle = textOn(fill);
-        ctx.font = "800 " + fs.toFixed(1) + 'px "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif';
+        ctx.font = wheelFont(800, fs.toFixed(1));
         ctx.textBaseline = "middle";
 
         var label = fit(items[i], avail);
@@ -754,16 +1037,14 @@
     function spin() {
       if (spinning) return;
       if (items.length < 2) {
-        hint.textContent = "식당을 2곳 이상 추가해 주세요.";
-        hint.classList.add("warn");
+        setHint("hintNeedTwo", true);
         input.focus();
         return;
       }
 
       spinning = true;
       setBusy(true);
-      hint.classList.remove("warn");
-      hint.textContent = "돌아가는 중…";
+      setHint("spinning", false);
 
       var n = items.length;
       var seg = TAU / n;
@@ -809,8 +1090,15 @@
     function setBusy(on) {
       spinBtn.disabled = on;
       hub.disabled = on;
-      hub.textContent = on ? "…" : "돌리기";
-      spinBtn.textContent = on ? "돌아가는 중…" : "돌려서 점심 정하기";
+      hub.textContent = on ? "…" : S().hub;
+      spinBtn.textContent = on ? S().spinning : S().spin;
+    }
+
+    function setHint(key, warn) {
+      hintKey = key;
+      hintWarn = !!warn;
+      hint.textContent = key === "spinning" ? S().spinning : S()[key];
+      hint.classList.toggle("warn", hintWarn);
     }
 
     function finish(winner) {
@@ -819,8 +1107,8 @@
       resultName.style.setProperty("--win", colorFor(winner, items.length));
       overlay.hidden = false;
       document.getElementById("again").focus();
-      live.textContent = "결과: " + name;
-      hint.textContent = "다시 돌려도 됩니다.";
+      live.textContent = S().result(name);
+      setHint("hintAgain", false);
       chime();
 
       history.unshift(name);
@@ -844,10 +1132,7 @@
         added++;
       });
 
-      if (added) {
-        hint.classList.remove("warn");
-        hint.textContent = items.length < 2 ? "식당을 2곳 이상 추가하면 돌릴 수 있어요." : "준비됐어요. 돌려 보세요.";
-      }
+      if (added) setHint(items.length < 2 ? "hintStart" : "hintReady", false);
       render();
       if (dupIndex !== -1) flashDup(dupIndex);
       return added;
@@ -857,7 +1142,7 @@
       var chip = listEl.children[index];
       if (!chip) return;
       chip.classList.add("dup");
-      hint.textContent = "이미 있는 식당이에요.";
+      setHint("hintDup", false);
       setTimeout(function () { chip.classList.remove("dup"); }, 360);
     }
 
@@ -884,7 +1169,7 @@
         x.className = "chip-x";
         x.type = "button";
         x.textContent = "×";
-        x.setAttribute("aria-label", name + " 삭제");
+        x.setAttribute("aria-label", S().remove(name));
         x.addEventListener("click", function () { remove(i); });
 
         li.appendChild(span);
@@ -893,7 +1178,7 @@
       });
 
       emptyEl.hidden = n > 0;
-      countEl.textContent = n + "곳";
+      countEl.textContent = S().count(n);
       shareOut.hidden = true;
       draw();
       save();
@@ -905,7 +1190,7 @@
 
       var label = document.createElement("span");
       label.className = "history-label";
-      label.textContent = "지난 결과";
+      label.textContent = S().recent;
       historyEl.appendChild(label);
 
       history.forEach(function (name) {
@@ -916,14 +1201,81 @@
       });
     }
 
+    /* ── language ── */
+    function applyLang() {
+      var s = S();
+      document.documentElement.lang = lang;
+      document.documentElement.setAttribute("data-lang", lang);
+      document.title = s.title;
+
+      Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
+        el.textContent = s[el.getAttribute("data-i18n")];
+      });
+      Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-ph]"), function (el) {
+        el.placeholder = s[el.getAttribute("data-i18n-ph")];
+      });
+      Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-aria]"), function (el) {
+        el.setAttribute("aria-label", s[el.getAttribute("data-i18n-aria")]);
+      });
+
+      Array.prototype.forEach.call(switchEl.children, function (btn) {
+        btn.setAttribute("aria-pressed", String(btn.getAttribute("data-lang") === lang));
+      });
+
+      setBusy(spinning);
+      setHint(hintKey, hintWarn);
+      readTheme();
+      render();
+      renderHistory();
+    }
+
+    function setLang(code) {
+      if (!STRINGS[code] || code === lang) return;
+      lang = code;
+      save();
+      applyLang();
+    }
+
+    function pickLang() {
+      var stored = null;
+      try { stored = (JSON.parse(localStorage.getItem(STORE_KEY) || "{}")).lang; } catch (e) { /* 무시 */ }
+      if (stored && STRINGS[stored]) return stored;
+
+      var fromHash = /[#&]lang=([a-z]{2})/i.exec(location.hash || "");
+      if (fromHash && STRINGS[fromHash[1].toLowerCase()]) return fromHash[1].toLowerCase();
+
+      var list = navigator.languages || [navigator.language || "en"];
+      for (var i = 0; i < list.length; i++) {
+        var code = String(list[i]).slice(0, 2).toLowerCase();
+        if (STRINGS[code]) return code;
+      }
+      return "en";
+    }
+
+    function buildSwitch() {
+      LANGS.forEach(function (l) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "lang-btn";
+        btn.setAttribute("data-lang", l.code);
+        btn.setAttribute("aria-label", l.name);
+        btn.title = l.name;
+        btn.textContent = l.short;
+        btn.addEventListener("click", function () { setLang(l.code); });
+        switchEl.appendChild(btn);
+      });
+    }
+
     /* ── storage & sharing ── */
     function save() {
       try {
-        localStorage.setItem(STORE_KEY, JSON.stringify({ items: items, history: history }));
+        localStorage.setItem(STORE_KEY, JSON.stringify({ items: items, history: history, lang: lang }));
       } catch (e) { /* 저장이 막혀 있어도 그냥 쓴다 */ }
     }
 
     function load() {
+      lang = pickLang();
+
       var fromHash = readHash();
       if (fromHash) {
         items = fromHash;
@@ -954,6 +1306,7 @@
     }
 
     function shareLink() {
+      // 언어는 붙이지 않는다 — 받는 사람의 브라우저 언어로 열리는 편이 낫다
       var base = location.href.split("#")[0];
       return base + "#r=" + encodeURIComponent(items.join("|"));
     }
@@ -972,28 +1325,25 @@
       if (!items.length) return;
       items = [];
       render();
-      hint.classList.remove("warn");
-      hint.textContent = "식당을 2곳 이상 추가하면 돌릴 수 있어요.";
+      setHint("hintStart", false);
     });
 
-    document.getElementById("share").addEventListener("click", function () {
+    shareBtn.addEventListener("click", function () {
       if (!items.length) {
-        hint.classList.add("warn");
-        hint.textContent = "공유할 목록이 아직 없어요.";
+        setHint("hintNoShare", true);
         return;
       }
       var url = shareLink();
-      var btn = this;
       function fallback() {
         shareOut.hidden = false;
         shareOut.value = url;
         shareOut.select();
-        btn.textContent = "링크를 직접 복사하세요";
+        shareBtn.textContent = S().shareManual;
       }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(function () {
-          btn.textContent = "복사했어요";
-          setTimeout(function () { btn.textContent = "공유 링크 복사"; }, 1800);
+          shareBtn.textContent = S().shareDone;
+          setTimeout(function () { shareBtn.textContent = S().share; }, 1800);
         }, fallback);
       } else {
         fallback();
@@ -1016,10 +1366,7 @@
       if (at !== -1) remove(at);
       closeResult();
       if (items.length >= 2) spin();
-      else {
-        hint.classList.add("warn");
-        hint.textContent = "남은 식당이 부족해요. 더 추가해 주세요.";
-      }
+      else setHint("hintFew", true);
     });
 
     overlay.addEventListener("click", function (e) {
@@ -1043,9 +1390,9 @@
     /* ── boot ── */
     readTheme();
     load();
-    render();
-    renderHistory();
-    if (items.length >= 2) hint.textContent = "준비됐어요. 돌려 보세요.";
+    buildSwitch();
+    hintKey = items.length >= 2 ? "hintReady" : "hintStart";
+    applyLang();
     sizeCanvas();
   })();
 </script>
