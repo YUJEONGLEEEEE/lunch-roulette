@@ -363,7 +363,13 @@
     transition: background .18s ease, color .18s ease;
   }
 
-  .mini:hover { background: var(--surface-2); color: var(--ink); }
+  .mini:hover:not(:disabled) { background: var(--surface-2); color: var(--ink); }
+
+  .mini:disabled {
+    color: var(--ink-3);
+    border-color: var(--line);
+    cursor: default;
+  }
 
   .info-btn {
     width: 22px;
@@ -666,7 +672,7 @@
         <p class="hint" id="hint"></p>
         <div class="history" id="history"></div>
 
-        <div class="history-actions" id="history-actions" hidden>
+        <div class="history-actions">
           <button class="mini" id="clear-history" type="button" data-i18n="clearHistory">이전 결과 지우기</button>
           <button class="info-btn" id="history-info" type="button" aria-expanded="false" data-i18n-aria="infoLabel">i</button>
         </div>
@@ -1024,7 +1030,7 @@
     var emptyEl = document.getElementById("empty");
     var countEl = document.getElementById("count");
     var historyEl = document.getElementById("history");
-    var historyActions = document.getElementById("history-actions");
+    var clearHistBtn = document.getElementById("clear-history");
     var historyNote = document.getElementById("history-note");
     var infoBtn = document.getElementById("history-info");
     var input = document.getElementById("name");
@@ -1507,12 +1513,9 @@
 
     function renderHistory() {
       historyEl.textContent = "";
-      historyActions.hidden = !history.length;
-      if (!history.length) {
-        historyNote.hidden = true;
-        infoBtn.setAttribute("aria-expanded", "false");
-        return;
-      }
+      // 버튼은 늘 보이되, 지울 기록이 없으면 비활성
+      clearHistBtn.disabled = !history.length;
+      if (!history.length) return;
 
       var label = document.createElement("span");
       label.className = "history-label";
@@ -1711,7 +1714,7 @@
       setHint("hintStart", false);
     });
 
-    document.getElementById("clear-history").addEventListener("click", function () {
+    clearHistBtn.addEventListener("click", function () {
       if (!history.length) return;
       history = [];
       renderHistory();
