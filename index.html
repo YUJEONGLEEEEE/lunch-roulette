@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="점심 먹을 식당을 랜덤으로 골라주는 돌림판." />
+<meta name="color-scheme" content="light dark" />
+<title>오늘 뭐 먹지?</title>
+<style>
+  /* ─── tokens: light (bare :root = complete palette) ─── */
+  :root {
+    --ground: #EFF1EB;
+    --surface: #FFFFFF;
+    --surface-2: #E5E9DF;
+    --ink: #141C18;
+    --ink-2: #4B564E;
+    --ink-3: #7D887F;
+    --line: #D3D9CD;
+    --line-strong: #B9C2B3;
+    --accent: #D9482A;
+    --accent-soft: #F6DED6;
+    --accent-ink: #FFFFFF;
+    --deep: #1C5347;
+    --metal-a: #F7F9F4;
+    --metal-b: #C6CEC2;
+    --shadow: 0 1px 2px rgba(20, 28, 24, .06), 0 12px 32px -12px rgba(20, 28, 24, .22);
+    --shadow-lift: 0 2px 4px rgba(20, 28, 24, .08), 0 26px 60px -20px rgba(20, 28, 24, .34);
+
+    --display: "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+    --body: "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+
+  /* ─── tokens: dark via OS (explicit light choice still wins) ─── */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E1412;
+      --surface: #161D1A;
+      --surface-2: #1F2724;
+      --ink: #E9EDE6;
+      --ink-2: #A8B3AB;
+      --ink-3: #79847C;
+      --line: #2A332E;
+      --line-strong: #3A453E;
+      --accent: #F2704A;
+      --accent-soft: #33201A;
+      --accent-ink: #1A0F0A;
+      --deep: #7FC0AE;
+      --metal-a: #2C352F;
+      --metal-b: #131917;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 12px 32px -12px rgba(0, 0, 0, .7);
+      --shadow-lift: 0 2px 4px rgba(0, 0, 0, .55), 0 26px 60px -20px rgba(0, 0, 0, .8);
+    }
+  }
+
+  /* ─── tokens: dark via explicit toggle ─── */
+  :root[data-theme="dark"] {
+    --ground: #0E1412;
+    --surface: #161D1A;
+    --surface-2: #1F2724;
+    --ink: #E9EDE6;
+    --ink-2: #A8B3AB;
+    --ink-3: #79847C;
+    --line: #2A332E;
+    --line-strong: #3A453E;
+    --accent: #F2704A;
+    --accent-soft: #33201A;
+    --accent-ink: #1A0F0A;
+    --deep: #7FC0AE;
+    --metal-a: #2C352F;
+    --metal-b: #131917;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 12px 32px -12px rgba(0, 0, 0, .7);
+    --shadow-lift: 0 2px 4px rgba(0, 0, 0, .55), 0 26px 60px -20px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .page {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 40px 20px 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  /* ─── masthead ─── */
+  .masthead { display: flex; flex-direction: column; gap: 8px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(2rem, 6vw, 3.1rem);
+    letter-spacing: -.045em;
+    line-height: 1.02;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  .dek {
+    margin: 0;
+    max-width: 46ch;
+    color: var(--ink-2);
+    font-size: 15px;
+  }
+
+  /* ─── stage ─── */
+  .stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+    gap: 32px;
+    align-items: start;
+  }
+
+  @media (max-width: 860px) {
+    .stage { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  }
+
+  /* ─── wheel column ─── */
+  .wheel-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+  }
+
+  .wheel-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    aspect-ratio: 1;
+  }
+
+  canvas { display: block; width: 100%; height: 100%; }
+
+  .needle {
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-top: 22px solid var(--accent);
+    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .3));
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 27%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: linear-gradient(160deg, var(--metal-a), var(--metal-b));
+    color: var(--ink);
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(13px, 3.4vw, 17px);
+    letter-spacing: -.03em;
+    cursor: pointer;
+    z-index: 2;
+    box-shadow: 0 6px 18px -6px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .35);
+    transition: transform .12s ease, box-shadow .18s ease;
+  }
+
+  .hub:hover:not(:disabled) { transform: translate(-50%, -50%) scale(1.04); }
+  .hub:active:not(:disabled) { transform: translate(-50%, -50%) scale(.97); }
+  .hub:disabled { cursor: default; color: var(--ink-3); }
+
+  .spin-btn {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 19px;
+    letter-spacing: -.02em;
+    color: var(--accent-ink);
+    background: var(--accent);
+    border: none;
+    border-radius: 999px;
+    padding: 15px 46px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform .12s ease, filter .18s ease;
+  }
+
+  .spin-btn:hover:not(:disabled) { filter: brightness(1.07); }
+  .spin-btn:active:not(:disabled) { transform: translateY(1px) scale(.99); }
+  .spin-btn:disabled { background: var(--surface-2); color: var(--ink-3); box-shadow: none; cursor: default; }
+
+  .under-wheel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    text-align: center;
+  }
+
+  .hint { margin: 0; font-size: 13px; color: var(--ink-3); }
+  .hint.warn { color: var(--accent); font-weight: 700; }
+
+  .history { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: baseline; }
+
+  .history-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .history-item {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-2);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 2px 7px;
+  }
+
+  .history-item:first-of-type { border-color: var(--line-strong); color: var(--ink); }
+
+  /* ─── panel ─── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+
+  .panel-title {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 17px;
+    letter-spacing: -.03em;
+    margin: 0;
+  }
+
+  .count { font-family: var(--mono); font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  .add-row { display: flex; gap: 8px; }
+
+  input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--body);
+    font-size: 15px;
+    color: var(--ink);
+    background: var(--ground);
+    border: 1px solid var(--line-strong);
+    border-radius: 9px;
+    padding: 11px 13px;
+  }
+
+  input[type="text"]::placeholder { color: var(--ink-3); }
+  input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+
+  .add-btn {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -.02em;
+    color: var(--surface);
+    background: var(--deep);
+    border: none;
+    border-radius: 9px;
+    padding: 0 18px;
+    cursor: pointer;
+    transition: filter .18s ease;
+  }
+
+  :root[data-theme="dark"] .add-btn { color: #0E1412; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .add-btn { color: #0E1412; } }
+
+  .add-btn:hover { filter: brightness(1.1); }
+
+  .list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--ground);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--chip, var(--line-strong));
+    border-radius: 8px;
+    padding: 7px 8px 7px 10px;
+    font-size: 14.5px;
+    max-width: 100%;
+  }
+
+  .chip.dup { animation: nudge .34s ease; border-color: var(--accent); }
+
+  @keyframes nudge {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  .chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .chip-x {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .chip-x:hover { background: var(--accent-soft); color: var(--accent); }
+
+  .empty {
+    margin: 0;
+    padding: 18px 0;
+    font-size: 14px;
+    color: var(--ink-3);
+    text-align: center;
+    border: 1px dashed var(--line-strong);
+    border-radius: 10px;
+  }
+
+  .panel-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .ghost {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-2);
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background .18s ease, color .18s ease;
+  }
+
+  .ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+  .share-out {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .share-out[hidden] { display: none; }
+
+  /* ─── result ─── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: color-mix(in srgb, var(--ground) 72%, transparent);
+    backdrop-filter: blur(7px);
+    animation: fade .22s ease;
+  }
+
+  .overlay[hidden] { display: none; }
+
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+  .result-card {
+    width: min(460px, 100%);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lift);
+    padding: 30px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    animation: rise .3s cubic-bezier(.16, .84, .32, 1);
+  }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+
+  .result-name {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(1.9rem, 8vw, 2.9rem);
+    letter-spacing: -.05em;
+    line-height: 1.08;
+    margin: 0;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    box-shadow: inset 0 -.32em 0 var(--win, var(--accent-soft));
+  }
+
+  .result-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .result-actions .spin-btn { flex: 1; padding: 13px 20px; font-size: 16px; }
+  .result-actions .ghost { padding: 13px 16px; font-size: 14px; }
+
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">Lunch Roulette</p>
+    <h1>오늘 뭐 먹지?</h1>
+    <p class="dek">가고 싶은 식당을 적고 한 번 돌리면 끝. 개수 제한 없고, 목록은 이 브라우저에 자동으로 저장됩니다.</p>
+  </header>
+
+  <div class="stage">
+    <div class="wheel-col">
+      <div class="wheel-wrap">
+        <div class="needle"></div>
+        <canvas id="wheel"></canvas>
+        <button class="hub" id="hub" type="button">돌리기</button>
+      </div>
+
+      <button class="spin-btn" id="spin" type="button">돌려서 점심 정하기</button>
+
+      <div class="under-wheel">
+        <p class="hint" id="hint">식당을 2곳 이상 추가하면 돌릴 수 있어요.</p>
+        <div class="history" id="history"></div>
+      </div>
+    </div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">식당 목록</h2>
+        <span class="count" id="count">0곳</span>
+      </div>
+
+      <form class="add-row" id="add-form">
+        <label class="sr" for="name">식당 이름</label>
+        <input type="text" id="name" placeholder="예) 김밥천국, 정든식당" autocomplete="off" maxlength="200" />
+        <button class="add-btn" type="submit">추가</button>
+      </form>
+
+      <p class="hint">쉼표로 구분하면 한 번에 여러 곳을 넣을 수 있어요.</p>
+
+      <ul class="list" id="list"></ul>
+      <p class="empty" id="empty">아직 비어 있어요. 첫 식당을 추가해 주세요.</p>
+
+      <div class="panel-foot">
+        <button class="ghost" id="share" type="button">공유 링크 복사</button>
+        <button class="ghost" id="clear" type="button">전체 삭제</button>
+        <input class="share-out" id="share-out" type="text" readonly hidden aria-label="공유 링크" />
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="result-card" role="dialog" aria-modal="true" aria-labelledby="result-name">
+    <p class="eyebrow">오늘 점심은</p>
+    <h2 class="result-name" id="result-name"></h2>
+    <div class="result-actions">
+      <button class="spin-btn" id="again" type="button">다시 돌리기</button>
+      <button class="ghost" id="exclude" type="button">이건 빼고 다시</button>
+      <button class="ghost" id="close" type="button">닫기</button>
+    </div>
+  </div>
+</div>
+
+<p class="sr" id="live" role="status" aria-live="polite"></p>
+
+<script>
+  (function () {
+    "use strict";
+
+    var STORE_KEY = "jeongo-roulette-v1";
+    var MAX_NAME = 28;
+    var TAU = Math.PI * 2;
+
+    /* 분식집 재료색에서 뽑은 큐레이션 팔레트 */
+    var PALETTE = [
+      "#E4572E", "#F0A63C", "#6FA84B", "#2E8C8C",
+      "#3B62A8", "#7A5AA8", "#C2456E", "#B3762C"
+    ];
+
+    var items = [];
+    var history = [];
+    var soundOn = true;
+    var rot = 0;
+    var spinning = false;
+
+    var canvas = document.getElementById("wheel");
+    var ctx = canvas.getContext("2d");
+    var hub = document.getElementById("hub");
+    var spinBtn = document.getElementById("spin");
+    var hint = document.getElementById("hint");
+    var listEl = document.getElementById("list");
+    var emptyEl = document.getElementById("empty");
+    var countEl = document.getElementById("count");
+    var historyEl = document.getElementById("history");
+    var input = document.getElementById("name");
+    var overlay = document.getElementById("overlay");
+    var resultName = document.getElementById("result-name");
+    var shareOut = document.getElementById("share-out");
+    var live = document.getElementById("live");
+
+    /* ── theme-aware canvas colors ── */
+    var css = {};
+    function readTheme() {
+      var s = getComputedStyle(document.documentElement);
+      ["--surface", "--ground", "--ink", "--ink-3", "--line", "--line-strong"].forEach(function (k) {
+        css[k] = s.getPropertyValue(k).trim();
+      });
+    }
+
+    /* ── color helpers ── */
+    function colorFor(i, n) {
+      var idx = i % PALETTE.length;
+      // 마지막 조각이 첫 조각과 붙어 같은 색이 되는 경우만 비켜준다
+      if (i === n - 1 && idx === 0 && n > 1) idx = Math.floor(PALETTE.length / 2);
+      return PALETTE[idx];
+    }
+
+    function textOn(hex) {
+      var r = parseInt(hex.slice(1, 3), 16) / 255;
+      var g = parseInt(hex.slice(3, 5), 16) / 255;
+      var b = parseInt(hex.slice(5, 7), 16) / 255;
+      function lin(c) { return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+      var l = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+      return l > 0.36 ? "#171208" : "#FFFFFF";
+    }
+
+    /* ── drawing ── */
+    function sizeCanvas() {
+      var box = canvas.parentNode.getBoundingClientRect();
+      var side = Math.max(240, Math.min(box.width, box.height));
+      var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      canvas.width = Math.round(side * dpr);
+      canvas.height = Math.round(side * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    function draw() {
+      var side = canvas.width / Math.min(window.devicePixelRatio || 1, 2.5);
+      var cx = side / 2;
+      var cy = side / 2;
+      var r = side / 2 - 6;
+      var hubR = side * 0.145;
+
+      ctx.clearRect(0, 0, side, side);
+
+      if (items.length === 0) {
+        ctx.save();
+        ctx.strokeStyle = css["--line-strong"];
+        ctx.setLineDash([7, 8]);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r - 2, 0, TAU);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = css["--ink-3"];
+        ctx.font = "700 " + Math.round(side * 0.042) + 'px "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("식당 이름을 추가해 주세요", cx, cy);
+        ctx.restore();
+        return;
+      }
+
+      var n = items.length;
+      var seg = TAU / n;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+
+      for (var i = 0; i < n; i++) {
+        var a0 = -Math.PI / 2 + i * seg;
+        var fill = colorFor(i, n);
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, r, a0, a0 + seg);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+
+        if (n <= 40) {
+          ctx.strokeStyle = "rgba(0,0,0,.14)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        // 조각 라벨
+        var mid = a0 + seg / 2;
+        var avail = r - 14 - hubR - 8;
+        var byArc = seg * r * 0.5;
+        var fs = Math.max(9, Math.min(side * 0.055, byArc, 30));
+
+        ctx.save();
+        ctx.rotate(mid);
+        ctx.fillStyle = textOn(fill);
+        ctx.font = "800 " + fs.toFixed(1) + 'px "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif';
+        ctx.textBaseline = "middle";
+
+        var label = fit(items[i], avail);
+        var abs = norm(mid + rot);
+        var flipped = abs > Math.PI / 2 && abs < Math.PI * 1.5;
+
+        if (flipped) {
+          ctx.rotate(Math.PI);
+          ctx.textAlign = "left";
+          ctx.fillText(label, -(r - 14), 0);
+        } else {
+          ctx.textAlign = "right";
+          ctx.fillText(label, r - 14, 0);
+        }
+        ctx.restore();
+      }
+      ctx.restore();
+
+      // 림 + 안쪽 음영
+      ctx.save();
+      ctx.translate(cx, cy);
+      var shade = ctx.createRadialGradient(0, 0, r * 0.3, 0, 0, r);
+      shade.addColorStop(0, "rgba(0,0,0,0)");
+      shade.addColorStop(1, "rgba(0,0,0,.16)");
+      ctx.fillStyle = shade;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, TAU);
+      ctx.fill();
+
+      ctx.strokeStyle = css["--surface"];
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(0, 0, r + 1, 0, TAU);
+      ctx.stroke();
+      ctx.strokeStyle = css["--line-strong"];
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, r - 1.5, 0, TAU);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function fit(text, width) {
+      if (ctx.measureText(text).width <= width) return text;
+      var cut = text;
+      while (cut.length > 1 && ctx.measureText(cut + "…").width > width) cut = cut.slice(0, -1);
+      return cut + "…";
+    }
+
+    function norm(a) { return ((a % TAU) + TAU) % TAU; }
+
+    /* ── sound ── */
+    var audio = null;
+    function tick() {
+      if (!soundOn) return;
+      try {
+        if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+        var t = audio.currentTime;
+        var osc = audio.createOscillator();
+        var gain = audio.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(1180, t);
+        gain.gain.setValueAtTime(0.05, t);
+        gain.gain.exponentialRampToValueAtTime(0.0006, t + 0.045);
+        osc.connect(gain).connect(audio.destination);
+        osc.start(t);
+        osc.stop(t + 0.05);
+      } catch (e) { soundOn = false; }
+    }
+
+    function chime() {
+      if (!soundOn) return;
+      try {
+        if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+        [0, 0.09, 0.19].forEach(function (d, k) {
+          var t = audio.currentTime + d;
+          var osc = audio.createOscillator();
+          var gain = audio.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime([660, 880, 1174][k], t);
+          gain.gain.setValueAtTime(0.09, t);
+          gain.gain.exponentialRampToValueAtTime(0.0008, t + 0.3);
+          osc.connect(gain).connect(audio.destination);
+          osc.start(t);
+          osc.stop(t + 0.32);
+        });
+      } catch (e) { /* 소리는 없어도 게임은 돌아간다 */ }
+    }
+
+    /* ── spin ── */
+    function randInt(max) {
+      if (window.crypto && window.crypto.getRandomValues) {
+        var limit = Math.floor(4294967296 / max) * max;
+        var a = new Uint32Array(1);
+        do { window.crypto.getRandomValues(a); } while (a[0] >= limit);
+        return a[0] % max;
+      }
+      return Math.floor(Math.random() * max);
+    }
+
+    function spin() {
+      if (spinning) return;
+      if (items.length < 2) {
+        hint.textContent = "식당을 2곳 이상 추가해 주세요.";
+        hint.classList.add("warn");
+        input.focus();
+        return;
+      }
+
+      spinning = true;
+      setBusy(true);
+      hint.classList.remove("warn");
+      hint.textContent = "돌아가는 중…";
+
+      var n = items.length;
+      var seg = TAU / n;
+      var winner = randInt(n);
+      var jitter = (Math.random() - 0.5) * seg * 0.72;
+      var target = norm(-(winner + 0.5) * seg - jitter);
+      var delta = norm(target - norm(rot));
+      var turns = 5 + randInt(3);
+      var from = rot;
+      var to = from + turns * TAU + delta;
+
+      var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var dur = reduced ? 420 : 4200 + Math.random() * 700;
+      var start = performance.now();
+      var lastTickSlot = Math.floor(from / seg);
+      var lastTickAt = 0;
+
+      function frame(now) {
+        var p = Math.min(1, (now - start) / dur);
+        var eased = 1 - Math.pow(1 - p, 4);
+        rot = from + (to - from) * eased;
+
+        var slot = Math.floor(rot / seg);
+        if (slot !== lastTickSlot) {
+          lastTickSlot = slot;
+          if (now - lastTickAt > 28) { tick(); lastTickAt = now; }
+        }
+
+        draw();
+        if (p < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          rot = norm(to);
+          draw();
+          spinning = false;
+          setBusy(false);
+          finish(winner);
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function setBusy(on) {
+      spinBtn.disabled = on;
+      hub.disabled = on;
+      hub.textContent = on ? "…" : "돌리기";
+      spinBtn.textContent = on ? "돌아가는 중…" : "돌려서 점심 정하기";
+    }
+
+    function finish(winner) {
+      var name = items[winner];
+      resultName.textContent = name;
+      resultName.style.setProperty("--win", colorFor(winner, items.length));
+      overlay.hidden = false;
+      document.getElementById("again").focus();
+      live.textContent = "결과: " + name;
+      hint.textContent = "다시 돌려도 됩니다.";
+      chime();
+
+      history.unshift(name);
+      if (history.length > 5) history.length = 5;
+      renderHistory();
+      save();
+    }
+
+    /* ── list ── */
+    function addNames(raw) {
+      var parts = String(raw).split(/[,\n\t]+/);
+      var added = 0;
+      var dupIndex = -1;
+
+      parts.forEach(function (p) {
+        var name = p.trim().replace(/\s+/g, " ").slice(0, MAX_NAME);
+        if (!name) return;
+        var at = items.indexOf(name);
+        if (at !== -1) { dupIndex = at; return; }
+        items.push(name);
+        added++;
+      });
+
+      if (added) {
+        hint.classList.remove("warn");
+        hint.textContent = items.length < 2 ? "식당을 2곳 이상 추가하면 돌릴 수 있어요." : "준비됐어요. 돌려 보세요.";
+      }
+      render();
+      if (dupIndex !== -1) flashDup(dupIndex);
+      return added;
+    }
+
+    function flashDup(index) {
+      var chip = listEl.children[index];
+      if (!chip) return;
+      chip.classList.add("dup");
+      hint.textContent = "이미 있는 식당이에요.";
+      setTimeout(function () { chip.classList.remove("dup"); }, 360);
+    }
+
+    function remove(index) {
+      items.splice(index, 1);
+      render();
+      save();
+    }
+
+    function render() {
+      listEl.textContent = "";
+      var n = items.length;
+
+      items.forEach(function (name, i) {
+        var li = document.createElement("li");
+        li.className = "chip";
+        li.style.setProperty("--chip", colorFor(i, n));
+
+        var span = document.createElement("span");
+        span.className = "chip-name";
+        span.textContent = name;
+
+        var x = document.createElement("button");
+        x.className = "chip-x";
+        x.type = "button";
+        x.textContent = "×";
+        x.setAttribute("aria-label", name + " 삭제");
+        x.addEventListener("click", function () { remove(i); });
+
+        li.appendChild(span);
+        li.appendChild(x);
+        listEl.appendChild(li);
+      });
+
+      emptyEl.hidden = n > 0;
+      countEl.textContent = n + "곳";
+      shareOut.hidden = true;
+      draw();
+      save();
+    }
+
+    function renderHistory() {
+      historyEl.textContent = "";
+      if (!history.length) return;
+
+      var label = document.createElement("span");
+      label.className = "history-label";
+      label.textContent = "지난 결과";
+      historyEl.appendChild(label);
+
+      history.forEach(function (name) {
+        var el = document.createElement("span");
+        el.className = "history-item";
+        el.textContent = name;
+        historyEl.appendChild(el);
+      });
+    }
+
+    /* ── storage & sharing ── */
+    function save() {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify({ items: items, history: history }));
+      } catch (e) { /* 저장이 막혀 있어도 그냥 쓴다 */ }
+    }
+
+    function load() {
+      var fromHash = readHash();
+      if (fromHash) {
+        items = fromHash;
+        try {
+          var keep = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+          history = Array.isArray(keep.history) ? keep.history : [];
+        } catch (e) { /* 무시 */ }
+        return;
+      }
+      try {
+        var saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+        if (Array.isArray(saved.items)) items = saved.items.filter(function (s) { return typeof s === "string" && s; });
+        if (Array.isArray(saved.history)) history = saved.history;
+      } catch (e) { /* 무시 */ }
+    }
+
+    function readHash() {
+      var m = /[#&]r=([^&]*)/.exec(location.hash || "");
+      if (!m) return null;
+      try {
+        var names = decodeURIComponent(m[1]).split("|")
+          .map(function (s) { return s.trim().slice(0, MAX_NAME); })
+          .filter(function (s) { return !!s; });
+        var out = [];
+        names.forEach(function (s) { if (out.indexOf(s) === -1) out.push(s); });
+        return out.length ? out : null;
+      } catch (e) { return null; }
+    }
+
+    function shareLink() {
+      var base = location.href.split("#")[0];
+      return base + "#r=" + encodeURIComponent(items.join("|"));
+    }
+
+    /* ── events ── */
+    document.getElementById("add-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (addNames(input.value)) input.value = "";
+      input.focus();
+    });
+
+    spinBtn.addEventListener("click", spin);
+    hub.addEventListener("click", spin);
+
+    document.getElementById("clear").addEventListener("click", function () {
+      if (!items.length) return;
+      items = [];
+      render();
+      hint.classList.remove("warn");
+      hint.textContent = "식당을 2곳 이상 추가하면 돌릴 수 있어요.";
+    });
+
+    document.getElementById("share").addEventListener("click", function () {
+      if (!items.length) {
+        hint.classList.add("warn");
+        hint.textContent = "공유할 목록이 아직 없어요.";
+        return;
+      }
+      var url = shareLink();
+      var btn = this;
+      function fallback() {
+        shareOut.hidden = false;
+        shareOut.value = url;
+        shareOut.select();
+        btn.textContent = "링크를 직접 복사하세요";
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () {
+          btn.textContent = "복사했어요";
+          setTimeout(function () { btn.textContent = "공유 링크 복사"; }, 1800);
+        }, fallback);
+      } else {
+        fallback();
+      }
+    });
+
+    function closeResult() {
+      overlay.hidden = true;
+      spinBtn.focus();
+    }
+
+    document.getElementById("close").addEventListener("click", closeResult);
+    document.getElementById("again").addEventListener("click", function () {
+      closeResult();
+      spin();
+    });
+
+    document.getElementById("exclude").addEventListener("click", function () {
+      var at = items.indexOf(resultName.textContent);
+      if (at !== -1) remove(at);
+      closeResult();
+      if (items.length >= 2) spin();
+      else {
+        hint.classList.add("warn");
+        hint.textContent = "남은 식당이 부족해요. 더 추가해 주세요.";
+      }
+    });
+
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) closeResult();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !overlay.hidden) closeResult();
+      if (e.key === " " && e.target === document.body) { e.preventDefault(); spin(); }
+    });
+
+    window.addEventListener("resize", sizeCanvas);
+    window.addEventListener("hashchange", function () {
+      var next = readHash();
+      if (next) { items = next; render(); }
+    });
+
+    var dark = window.matchMedia("(prefers-color-scheme: dark)");
+    if (dark.addEventListener) dark.addEventListener("change", function () { readTheme(); draw(); });
+
+    /* ── boot ── */
+    readTheme();
+    load();
+    render();
+    renderHistory();
+    if (items.length >= 2) hint.textContent = "준비됐어요. 돌려 보세요.";
+    sizeCanvas();
+  })();
+</script>
+</body>
+</html>

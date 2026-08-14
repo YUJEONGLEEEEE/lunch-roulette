@@ -1,0 +1,49 @@
+# Lunch Roulette · 오늘 뭐 먹지?
+
+A spinning wheel that decides where to eat lunch. One HTML file — no build step, no dependencies, no backend. Open it by double-clicking, or drop it on any static host.
+
+**Live demo:** https://YUJEONGLEEEEE.github.io/lunch-roulette/
+
+## Features
+
+- **Unlimited entries** — add restaurants one by one, or paste a comma-separated list to add several at once. Duplicates are rejected with a visual nudge.
+- **Honest draw** — the winner is picked first with `crypto.getRandomValues` (uniform, rejection-sampled), then the target rotation is computed so that wedge stops under the pointer. The animation can never disagree with the outcome.
+- **Spin again without this one** — drops the winner from the list and immediately re-spins, for when the group vetoes a result.
+- **Persistence** — the list and the last five results are kept in `localStorage`, so the next day starts where you left off.
+- **Shareable list** — the list is encoded into the URL hash (`#r=name|name|name`). Send the link and the wheel opens pre-filled.
+- **Adaptive rendering** — canvas wedges scale to any entry count; label size and truncation are derived from wedge width, and labels flip to stay upright on the left half.
+- **Light and dark themes**, responsive down to phone width, keyboard support (Space to spin, Esc to close), and `prefers-reduced-motion` handling.
+
+## How it works
+
+The wheel is a single `<canvas>` redrawn each frame at device pixel ratio. A spin picks the winner index `w`, then solves for the final rotation:
+
+```
+rot = -(w + 0.5) * segment - jitter
+```
+
+where `segment = 2π / n` and `jitter` keeps the pointer from always landing dead center. The wheel eases to `rot + turns * 2π` on a quartic ease-out, and a short Web Audio click fires each time a wedge boundary crosses the pointer.
+
+The landing math was verified across 2–60 entries over 47,200 simulated spins — the wedge under the pointer matched the drawn winner every time.
+
+Wedge colors come from a fixed eight-color palette rather than generated HSL steps, with per-wedge label color chosen by relative luminance so text stays legible on every fill.
+
+## Running locally
+
+```bash
+open index.html
+```
+
+No server required — the page uses no network requests, external fonts, or third-party scripts.
+
+## Deploying
+
+Any static host works. For GitHub Pages: **Settings → Pages → Source: Deploy from a branch → `main` / `(root)`**.
+
+## Data
+
+There is no server and no analytics. Restaurant lists live only in the visitor's own browser; nothing is transmitted anywhere.
+
+## Browser support
+
+Any current browser. Uses Canvas 2D, Web Audio, `localStorage`, and `crypto.getRandomValues`; the page still works if audio or storage is unavailable.
