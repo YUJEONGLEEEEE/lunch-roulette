@@ -882,7 +882,38 @@
 
   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
+  .card-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-family: var(--body);
+    font-size: 20px;
+    line-height: 1;
+    color: var(--ink-3);
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .card-close:hover { background: var(--surface-2); color: var(--ink); }
+
+  .result-shot {
+    display: block;
+    width: min(240px, 62%);
+    aspect-ratio: 1;
+    margin: 4px auto 2px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--ground);
+  }
+
   .result-card {
+    position: relative;
+    text-align: center;
     width: min(460px, 100%);
     background: var(--surface);
     border: 1px solid var(--line);
@@ -899,6 +930,7 @@
 
   .result-name {
     font-family: var(--display);
+    align-self: center;
     font-weight: 900;
     font-size: clamp(1.9rem, 8vw, 2.9rem);
     letter-spacing: -.05em;
@@ -924,7 +956,17 @@
 
   .badge[hidden] { display: none; }
 
-  .result-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .result-meta {
+    margin: -12px 0 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .04em;
+    color: var(--ink-3);
+  }
+
+  .result-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+  .spin-btn.deep { background: var(--deep); color: var(--on-deep); }
 
   .result-actions .spin-btn { flex: 1; padding: 13px 20px; font-size: 16px; }
   .result-actions .ghost { padding: 13px 16px; font-size: 14px; }
@@ -1037,11 +1079,6 @@
 
       <div class="panel-foot">
         <div class="switches">
-          <label class="switch-row" id="decision-row">
-            <span class="switch-label" data-i18n="decision">오늘의 결정</span>
-            <input type="checkbox" id="decision" class="switch-input" />
-            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
-          </label>
           <label class="switch-row" id="weight-row">
             <span class="switch-label" data-i18n="weight">어제 먹은 곳 피하기</span>
             <input type="checkbox" id="weight" class="switch-input" />
@@ -1066,13 +1103,21 @@
 
 <div class="overlay" id="overlay" hidden>
   <div class="result-card" role="dialog" aria-modal="true" aria-labelledby="result-name">
-    <p class="eyebrow" data-i18n="resultEyebrow">오늘 점심은</p>
-    <p class="badge" id="result-badge" data-i18n="decisionBadge" hidden></p>
+    <button class="card-close" id="close" type="button" data-i18n-aria="close" aria-label="닫기">×</button>
+
+    <canvas class="result-shot" id="result-shot" aria-hidden="true"></canvas>
+
+    <p class="eyebrow" id="result-eyebrow">오늘 점심은</p>
     <h2 class="result-name" id="result-name"></h2>
+    <p class="result-meta" id="result-meta"></p>
+
     <div class="result-actions">
       <button class="spin-btn" id="again" type="button" data-i18n="again">다시 돌리기</button>
+      <button class="spin-btn deep" id="try-mine" type="button" data-i18n="tryMyself" hidden>나도 돌려보기</button>
+    </div>
+    <div class="result-actions">
+      <button class="ghost" id="share-result" type="button" data-i18n="shareResult">결과 공유하기</button>
       <button class="ghost" id="exclude" type="button" data-i18n="exclude">이건 빼고 다시</button>
-      <button class="ghost" id="close" type="button" data-i18n="close">닫기</button>
     </div>
   </div>
 </div>
@@ -1239,16 +1284,17 @@
         clearShort: "지우기",
         skipToday: "오늘만 빼기",
         skippedTray: "오늘 쉬는 곳",
-        decision: "오늘의 결정",
-        hintDecisionOn: "링크를 연 사람 모두 오늘 같은 결과를 봅니다. 가중치와 오늘 쉬는 곳은 잠시 꺼집니다.",
-        hintDecisionOff: "각자 돌릴 때마다 결과가 달라집니다.",
-        decisionBadge: "오늘의 결정",
         modeWheel: "돌림판",
         modeLadder: "사다리타기",
         ladderGo: "아무 줄이나 골라 내려가기",
         reshuffle: "새로 섞기",
         ladderTip: "출발점을 누르면 내려갑니다. 가운데를 누르면 가로선을 넣거나 뺄 수 있어요.",
         ladderRunning: "내려가는 중…",
+        shareResult: "결과 공유하기",
+        sharedEyebrow: "공유된 결과",
+        tryMyself: "나도 돌려보기",
+        resultText: function (name) { return "오늘 점심은 " + name + "!"; },
+        pickedFrom: function (n, how) { return n + "곳 중에서 · " + how; },
         unskip: "다시 넣기",
         hintAllSkipped: "제외를 풀거나 식당을 더 추가해 주세요.",
         skipTip: "이름을 누르면 오늘만 빼둘 수 있어요.",
@@ -1303,16 +1349,17 @@
         clearShort: "Clear",
         skipToday: "Skip today",
         skippedTray: "Sitting out today",
-        decision: "Today's call",
-        hintDecisionOn: "Everyone who opens the link sees the same result today. Weighting and skips pause while this is on.",
-        hintDecisionOff: "Each spin gives a fresh result.",
-        decisionBadge: "Today's call",
         modeWheel: "Wheel",
         modeLadder: "Ladder",
         ladderGo: "Take a random line",
         reshuffle: "Reshuffle",
         ladderTip: "Tap a starting point to follow it down. Tap between the lines to add or remove a rung.",
         ladderRunning: "Following the line…",
+        shareResult: "Share result",
+        sharedEyebrow: "Shared result",
+        tryMyself: "Try it myself",
+        resultText: function (name) { return "Lunch today: " + name + "!"; },
+        pickedFrom: function (n, how) { return "picked from " + n + " places · " + how; },
         unskip: "Put back",
         hintAllSkipped: "Put a few back, or add more places.",
         skipTip: "Tap a name to skip it just for today.",
@@ -1367,16 +1414,17 @@
         clearShort: "削除",
         skipToday: "今日は外す",
         skippedTray: "今日はお休み",
-        decision: "今日の決定",
-        hintDecisionOn: "リンクを開いた全員が今日は同じ結果を見ます。重み付けとお休みは一時的に無効になります。",
-        hintDecisionOff: "まわすたびに結果が変わります。",
-        decisionBadge: "今日の決定",
         modeWheel: "ルーレット",
         modeLadder: "あみだくじ",
         ladderGo: "どれかの線で下りる",
         reshuffle: "引き直す",
         ladderTip: "スタート地点をタップすると下ります。線の間をタップすると横線を足したり消せます。",
         ladderRunning: "下っています…",
+        shareResult: "結果を共有",
+        sharedEyebrow: "共有された結果",
+        tryMyself: "自分でもやってみる",
+        resultText: function (name) { return "今日のランチは" + name + "！"; },
+        pickedFrom: function (n, how) { return n + "件から · " + how; },
         unskip: "戻す",
         hintAllSkipped: "除外を戻すか、お店を追加してください。",
         skipTip: "名前をタップすると今日だけ外せます。",
@@ -1431,16 +1479,17 @@
         clearShort: "清除",
         skipToday: "今天跳过",
         skippedTray: "今天休息",
-        decision: "今天的决定",
-        hintDecisionOn: "打开链接的所有人今天看到相同结果。加权与今日休息会暂时停用。",
-        hintDecisionOff: "每次转动都会得到新的结果。",
-        decisionBadge: "今天的决定",
         modeWheel: "转盘",
         modeLadder: "画鬼脚",
         ladderGo: "随便选一条线",
         reshuffle: "重新洗牌",
         ladderTip: "点击起点即可向下走。点击线之间可增删横线。",
         ladderRunning: "正在向下…",
+        shareResult: "分享结果",
+        sharedEyebrow: "分享的结果",
+        tryMyself: "我也来一次",
+        resultText: function (name) { return "今天的午餐是" + name + "！"; },
+        pickedFrom: function (n, how) { return "从 " + n + " 家中选出 · " + how; },
         unskip: "放回",
         hintAllSkipped: "请放回几家，或再添加餐厅。",
         skipTip: "点击名称可仅在今天跳过。",
@@ -1495,16 +1544,17 @@
         clearShort: "Borrar",
         skipToday: "Saltar hoy",
         skippedTray: "Descansan hoy",
-        decision: "Decisión de hoy",
-        hintDecisionOn: "Todos los que abran el enlace ven el mismo resultado hoy. La ponderación y los saltos se pausan.",
-        hintDecisionOff: "Cada giro da un resultado distinto.",
-        decisionBadge: "Decisión de hoy",
         modeWheel: "Ruleta",
         modeLadder: "Escalera",
         ladderGo: "Tomar una línea al azar",
         reshuffle: "Rebarajar",
         ladderTip: "Toca un punto de salida para seguirlo. Toca entre las líneas para añadir o quitar un travesaño.",
         ladderRunning: "Siguiendo la línea…",
+        shareResult: "Compartir resultado",
+        sharedEyebrow: "Resultado compartido",
+        tryMyself: "Probar yo también",
+        resultText: function (name) { return "Hoy comemos en " + name + "!"; },
+        pickedFrom: function (n, how) { return "de " + n + " sitios · " + how; },
         unskip: "Volver a incluir",
         hintAllSkipped: "Vuelve a incluir alguno o añade más sitios.",
         skipTip: "Toca un nombre para saltarlo solo hoy.",
@@ -1559,16 +1609,17 @@
         clearShort: "Löschen",
         skipToday: "Heute überspringen",
         skippedTray: "Heute pausiert",
-        decision: "Heutige Wahl",
-        hintDecisionOn: "Alle, die den Link öffnen, sehen heute dasselbe Ergebnis. Gewichtung und Pausen sind so lange aus.",
-        hintDecisionOff: "Jeder Dreh liefert ein neues Ergebnis.",
-        decisionBadge: "Heutige Wahl",
         modeWheel: "Rad",
         modeLadder: "Leiter",
         ladderGo: "Zufällige Linie nehmen",
         reshuffle: "Neu mischen",
         ladderTip: "Tippe einen Startpunkt an, um ihm zu folgen. Tippe zwischen die Linien, um eine Sprosse zu setzen.",
         ladderRunning: "Folge der Linie…",
+        shareResult: "Ergebnis teilen",
+        sharedEyebrow: "Geteiltes Ergebnis",
+        tryMyself: "Selbst ausprobieren",
+        resultText: function (name) { return "Heute gibt es " + name + "!"; },
+        pickedFrom: function (n, how) { return "aus " + n + " Lokalen · " + how; },
         unskip: "Zurücklegen",
         hintAllSkipped: "Nimm welche zurück oder füge Lokale hinzu.",
         skipTip: "Tippe einen Namen an, um ihn nur heute zu überspringen.",
@@ -1597,7 +1648,6 @@
     var rot = 0;
     var spinning = false;
     var weighted = true;
-    var decision = false;    // 오늘의 결정 모드
     var mode = "wheel";      // wheel | ladder
 
     /* 최근 1·2·3번째 결과에 곱하는 배수. 그 이전은 1 */
@@ -1626,11 +1676,14 @@
     var input = document.getElementById("name");
     var overlay = document.getElementById("overlay");
     var resultName = document.getElementById("result-name");
+    var resultMeta = document.getElementById("result-meta");
+    var shotCanvas = document.getElementById("result-shot");
+    var resultEyebrow = document.getElementById("result-eyebrow");
+    var lastResult = null;
+    var shownResult = null;
     var shareOut = document.getElementById("share-out");
     var shareBtn = document.getElementById("share");
     var weightBtn = document.getElementById("weight");
-    var decisionBtn = document.getElementById("decision");
-    var weightRow = document.getElementById("weight-row");
     var themeBtn = document.getElementById("theme-toggle");
     var themeMenu = document.getElementById("theme-menu");
     var langBtn = document.getElementById("lang-toggle");
@@ -1680,11 +1733,6 @@
       return z / 4294967296;
     }
 
-    function decisionPick(names) {
-      var seed = seedFrom(today() + "|" + names.join("|"));
-      return Math.floor(seededRandom(seed) * names.length) % names.length;
-    }
-
     /* ── 사다리타기 ──
        가로선은 (열, 행) 칸에 놓인다. 같은 행의 이웃 칸이 차 있으면 경로가 모호해지므로 막는다 */
     var ladder = { rows: 0, cols: 0, names: [], rungs: {}, path: null, progress: 1, start: -1 };
@@ -1697,20 +1745,17 @@
              !hasRung(c - 1, r) && !hasRung(c + 1, r);
     }
 
-    function buildLadder() {
+    function buildLadder(seed) {
       var names = activeItems();
       var n = names.length;
       var rows = Math.max(6, Math.min(12, n * 2));
-      ladder = { rows: rows, cols: n, names: names, rungs: {}, path: null, progress: 1, start: -1 };
+      // 씨앗을 남겨두면 같은 사다리를 언제든 다시 그릴 수 있다 (결과 공유에 쓰인다)
+      var use = typeof seed === "number" ? seed >>> 0 : Math.floor(Math.random() * 4294967296) >>> 0;
+      ladder = { rows: rows, cols: n, names: names, rungs: {}, path: null, progress: 1, start: -1, seed: use };
       if (n < 2) return;
 
-      // 오늘의 결정 중에는 사다리 모양도 날짜로 고정해 모두가 같은 그림을 본다
-      var seed = seedFrom(today() + "|ladder|" + names.join("|"));
       var step = 0;
-      var rnd = decision
-        ? function () { return seededRandom((seed + (step++) * 0x9E3779B9) >>> 0); }
-        : Math.random;
-
+      var rnd = function () { return seededRandom((use + (step++) * 0x9E3779B9) >>> 0); };
       for (var r = 0; r < rows; r++) {
         for (var c = 0; c < n - 1; c++) {
           if (rnd() < 0.42 && canPlace(c, r)) ladder.rungs[rungKey(c, r)] = true;
@@ -1752,8 +1797,6 @@
 
     /* 오늘 원판에 올라갈 후보 */
     function activeItems() {
-      // 오늘의 결정 중에는 모두가 같은 조건을 봐야 하므로 개인 설정(쉬는 곳)을 적용하지 않는다
-      if (decision) return items.slice();
       return items.filter(function (n) { return !isSkipped(n); });
     }
 
@@ -1769,7 +1812,7 @@
 
     /* ── 가중치: 최근에 나온 곳일수록 낮게 ── */
     function weightOf(name) {
-      if (!weighted || decision) return 1;
+      if (!weighted) return 1;
       var at = history.indexOf(name);
       return at === -1 ? 1 : (DECAY[at] || 1);
     }
@@ -2199,7 +2242,7 @@
       setHint("spinning", false);
 
       var L = layout();
-      var winner = decision ? decisionPick(L.names) : pickWeighted(L);
+      var winner = pickWeighted(L);
       var aw = L.angle(winner);
       var center = L.starts[winner] + aw / 2;
       var jitter = (Math.random() - 0.5) * aw * 0.72;
@@ -2274,13 +2317,74 @@
       hint.classList.toggle("warn", hintWarn);
     }
 
+    /* 큰 판의 현재 그림을 카드 안 작은 판으로 옮겨 담는다 */
+    function copyToShot() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      var box = shotCanvas.getBoundingClientRect();
+      var side = Math.max(160, box.width || 240);
+      shotCanvas.width = Math.round(side * dpr);
+      shotCanvas.height = Math.round(side * dpr);
+      var sctx = shotCanvas.getContext("2d");
+      sctx.setTransform(1, 0, 0, 1, 0, 0);
+      sctx.clearRect(0, 0, shotCanvas.width, shotCanvas.height);
+      sctx.drawImage(canvas, 0, 0, shotCanvas.width, shotCanvas.height);
+    }
+
+    /* 공유받은 결과를 원래 판 모습으로 되살린다 */
+    function rebuildScene(name, how, seed, startCol) {
+      var savedWeighted = weighted, savedSkipped = skipped, savedMode = mode;
+      weighted = false;                      // 보낸 사람의 기록은 알 수 없으므로 균등하게 그린다
+      skipped = [];
+
+      if (seed !== null) {
+        mode = "ladder";
+        buildLadder(seed);
+        if (ladder.cols >= 2) {
+          var col = Math.min(Math.max(startCol, 0), ladder.cols - 1);
+          ladder.start = col;
+          ladder.path = tracePath(col);
+          ladder.progress = 1;
+        }
+        drawLadder();
+      } else {
+        mode = "wheel";
+        var L = layout();
+        var at = L.names.indexOf(name);
+        if (at !== -1) rot = norm(-(L.starts[at] + L.angle(at) / 2));
+        draw();
+      }
+
+      copyToShot();
+      weighted = savedWeighted;
+      skipped = savedSkipped;
+      mode = savedMode;
+    }
+
+    function showResult(name, color, count, how, shared) {
+      resultName.textContent = name;
+      resultName.style.setProperty("--win", color);
+      resultMeta.textContent = S().pickedFrom(count, how);
+      resultEyebrow.textContent = shared ? S().sharedEyebrow : S().resultEyebrow;
+
+      // 남의 결과를 열었을 때는 '나도 돌려보기'만, 내 결과일 때는 평소 버튼들
+      document.getElementById("try-mine").hidden = !shared;
+      document.getElementById("again").hidden = shared;
+      document.getElementById("exclude").hidden = shared;
+      document.getElementById("share-result").hidden = shared;
+      lastResult = shared ? null : {
+        name: name, count: count, how: how,
+        seed: mode === "ladder" ? ladder.seed : null,
+        start: mode === "ladder" ? ladder.start : null
+      };
+      shownResult = { name: name, color: color, count: count, how: how, shared: shared };
+      overlay.hidden = false;
+    }
+
     function finish(winner, live) {
       var name = live[winner];
-      resultName.textContent = name;
-      resultName.style.setProperty("--win", colorFor(winner, live.length));
-      overlay.hidden = false;
-      document.getElementById("result-badge").hidden = !decision;
-      document.getElementById("exclude").hidden = decision;
+      copyToShot();
+      showResult(name, colorFor(winner, live.length), live.length,
+                 S()[mode === "ladder" ? "modeLadder" : "modeWheel"], false);
       document.getElementById("again").focus();
       live.textContent = S().result(name);
       setHint("hintAgain", false);
@@ -2346,7 +2450,7 @@
       trayList.textContent = "";
 
       items.forEach(function (name, i) {
-        if (isSkipped(name) && !decision) {
+        if (isSkipped(name)) {
           // 오늘 쉬는 곳은 목록에서 내려와 아래 칸에 머문다
           var back = document.createElement("li");
           back.className = "tray-item";
@@ -2375,15 +2479,13 @@
         li.className = "chip";
         li.style.setProperty("--chip", colorFor(pos, live));
 
-        var span = document.createElement(decision ? "span" : "button");
+        var span = document.createElement("button");
         span.className = "chip-name";
+        span.type = "button";
         span.textContent = name;
-        if (!decision) {
-          span.type = "button";
-          span.title = S().skipToday;
-          span.setAttribute("aria-label", name + " — " + S().skipToday);
-          span.addEventListener("click", function () { toggleSkip(name); });
-        }
+        span.title = S().skipToday;
+        span.setAttribute("aria-label", name + " — " + S().skipToday);
+        span.addEventListener("click", function () { toggleSkip(name); });
 
         var x = document.createElement("button");
         x.className = "chip-x";
@@ -2463,6 +2565,11 @@
 
       setBusy(spinning);
       setHint(hintKey, hintWarn);
+      if (shownResult && !overlay.hidden) {
+        var how = shownResult.how;
+        resultMeta.textContent = s.pickedFrom(shownResult.count, how);
+        resultEyebrow.textContent = shownResult.shared ? s.sharedEyebrow : s.resultEyebrow;
+      }
       updateToggles();
       readTheme();
       render();
@@ -2470,12 +2577,7 @@
     }
 
     function updateToggles() {
-      decisionBtn.checked = decision;
-
-      // 오늘의 결정 중에는 가중치가 적용되지 않으므로 꺼진 모습으로 잠근다
-      weightBtn.checked = weighted && !decision;
-      weightBtn.disabled = decision;
-      weightRow.classList.toggle("off", decision);
+      weightBtn.checked = weighted;
     }
 
     function setLang(code) {
@@ -2659,7 +2761,7 @@
       try {
         localStorage.setItem(STORE_KEY, JSON.stringify({
           items: items, history: history, lang: lang, weighted: weighted, theme: theme,
-          skipped: skipped, skipDate: skipDate, decision: decision, mode: mode
+          skipped: skipped, skipDate: skipDate, mode: mode
         }));
       } catch (e) { /* 저장이 막혀 있어도 그냥 쓴다 */ }
     }
@@ -2670,7 +2772,6 @@
       var fromHash = readHash();
       if (fromHash) {
         items = fromHash;
-        if (/[#&]d=1/.test(location.hash || "")) decision = true;
         try {
           var keep = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
           history = Array.isArray(keep.history) ? keep.history.slice(0, DECAY.length) : [];
@@ -2684,7 +2785,6 @@
         if (Array.isArray(saved.items)) items = saved.items.filter(function (s) { return typeof s === "string" && s; });
         if (Array.isArray(saved.history)) history = saved.history.slice(0, DECAY.length);
         if (typeof saved.weighted === "boolean") weighted = saved.weighted;
-        if (typeof saved.decision === "boolean") decision = saved.decision;
         if (saved.mode === "ladder" || saved.mode === "wheel") mode = saved.mode;
         if (saved.theme) theme = saved.theme;
         // 오늘만 빼둔 목록은 날짜가 바뀌면 저절로 풀린다
@@ -2711,7 +2811,7 @@
     function shareLink() {
       // 언어는 붙이지 않는다 — 받는 사람의 브라우저 언어로 열리는 편이 낫다
       var base = location.href.split("#")[0];
-      return base + "#r=" + encodeURIComponent(items.join("|")) + (decision ? "&d=1" : "");
+      return base + "#r=" + encodeURIComponent(items.join("|"));
     }
 
     /* ── events ── */
@@ -2756,7 +2856,7 @@
       if (mode !== "ladder") { spin(); return; }
       var n = ladder.cols;
       if (n < 2) { setHint(items.length >= 2 ? "hintAllSkipped" : "hintNeedTwo", true); return; }
-      runLadder(decision ? decisionPick(ladder.names) : randInt(n));
+      runLadder(randInt(n));
     }
 
     canvas.addEventListener("click", function (e) {
@@ -2823,17 +2923,7 @@
       infoBtn.setAttribute("aria-expanded", String(open));
     });
 
-    decisionBtn.addEventListener("change", function () {
-      decision = decisionBtn.checked;
-      updateToggles();
-      if (mode === "ladder") buildLadder();
-      setHint(decision ? "hintDecisionOn" : "hintDecisionOff", false);
-      render();
-      save();
-    });
-
     weightBtn.addEventListener("change", function () {
-      if (decision) { weightBtn.checked = false; return; }
       weighted = weightBtn.checked;
       updateToggles();
       setHint(weighted ? "hintWeightOn" : "hintWeightOff", false);
@@ -2878,6 +2968,52 @@
       } else {
         copy();
       }
+    });
+
+    function resultLink(r) {
+      var base = location.href.split("#")[0];
+      var url = base + "#w=" + encodeURIComponent(r.name) +
+                "&r=" + encodeURIComponent(items.join("|")) +
+                "&m=" + (mode === "ladder" ? "l" : "w");
+      // 사다리는 씨앗과 출발 줄이 있어야 받는 쪽에서 같은 그림이 나온다
+      if (r.seed !== null && r.seed !== undefined) url += "&s=" + r.seed + "&c=" + r.start;
+      return url;
+    }
+
+    document.getElementById("share-result").addEventListener("click", function () {
+      if (!lastResult) return;
+      var url = resultLink(lastResult);
+      var text = S().resultText(lastResult.name);
+
+      if (navigator.share) {
+        navigator.share({ title: S().title, text: text, url: url })["catch"](function (err) {
+          if (!err || err.name !== "AbortError") copyText(url, text);
+        });
+      } else {
+        copyText(url, text);
+      }
+    });
+
+    function copyText(url, text) {
+      var payload = text + " " + url;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(payload).then(function () {
+          setHint("shareDone", false);
+        }, function () { showShareField(url); });
+      } else {
+        showShareField(url);
+      }
+    }
+
+    function showShareField(url) {
+      shareOut.hidden = false;
+      shareOut.value = url;
+      shareOut.select();
+    }
+
+    document.getElementById("try-mine").addEventListener("click", function () {
+      closeResult();
+      startAny();
     });
 
     function closeResult() {
@@ -2930,6 +3066,27 @@
     applyLang();
     applyMode();
     sizeCanvas();
+
+    // 공유받은 결과가 주소에 있으면 카드부터 띄운다
+    (function () {
+      var m = /[#&]w=([^&]*)/.exec(location.hash || "");
+      if (!m) return;
+      try {
+        var name = decodeURIComponent(m[1]).slice(0, MAX_NAME);
+        if (!name) return;
+        var at = items.indexOf(name);
+        var isLadder = /[#&]m=l/.test(location.hash);
+        var how = isLadder ? S().modeLadder : S().modeWheel;
+        var sm = /[#&]s=(\d+)/.exec(location.hash);
+        var cm = /[#&]c=(\d+)/.exec(location.hash);
+
+        rebuildScene(name, how, isLadder && sm ? parseInt(sm[1], 10) : null,
+                     cm ? parseInt(cm[1], 10) : 0);
+
+        showResult(name, at === -1 ? "var(--accent-soft)" : colorFor(at, items.length),
+                   items.length || 1, how, true);
+      } catch (e) { /* 주소가 깨졌으면 그냥 평소 화면 */ }
+    })();
   })();
 </script>
 </body>
