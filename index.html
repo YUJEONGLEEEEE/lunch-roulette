@@ -720,6 +720,61 @@
     color: var(--accent);
   }
 
+  .icon-ghost {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--ink-2);
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: color .18s ease, border-color .18s ease, background .18s ease;
+  }
+
+  .icon-ghost:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .icon-ghost svg { width: 17px; height: 17px; display: block; }
+
+  /* 말풍선 툴팁 */
+  .icon-ghost::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-family: var(--body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--surface);
+    background: var(--ink);
+    border-radius: 7px;
+    padding: 6px 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .16s ease;
+  }
+
+  .icon-ghost::before {
+    content: "";
+    position: absolute;
+    bottom: calc(100% + 3px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--ink);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .16s ease;
+  }
+
+  .icon-ghost:hover::after, .icon-ghost:hover::before,
+  .icon-ghost:focus-visible::after, .icon-ghost:focus-visible::before { opacity: 1; }
+
   .share-out {
     width: 100%;
     font-family: var(--mono);
@@ -896,7 +951,13 @@
       <div class="panel-foot">
         <button class="ghost" id="decision" type="button" aria-pressed="false"></button>
         <button class="ghost" id="weight" type="button" aria-pressed="true"></button>
-        <button class="ghost" id="share" type="button" data-i18n="share">공유 링크 복사</button>
+        <button class="icon-ghost" id="share" type="button" data-i18n-aria="share" data-i18n-tip="share">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3v12" />
+            <path d="M8 7l4-4 4 4" />
+            <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+          </svg>
+        </button>
         <button class="ghost" id="clear" type="button" data-i18n="clear">전체 삭제</button>
         <input class="share-out" id="share-out" type="text" readonly hidden data-i18n-aria="shareLabel" />
       </div>
@@ -1058,7 +1119,7 @@
         add: "추가",
         pasteHint: "쉼표로 구분하면 한 번에 여러 곳을 넣을 수 있어요.",
         empty: "아직 비어 있어요. 첫 식당을 추가해 주세요.",
-        share: "공유 링크 복사",
+        share: "링크 공유",
         shareDone: "복사했어요",
         shareManual: "링크를 직접 복사하세요",
         shareLabel: "공유 링크",
@@ -1116,7 +1177,7 @@
         add: "Add",
         pasteHint: "Separate with commas to add several at once.",
         empty: "Empty for now. Add your first place.",
-        share: "Copy share link",
+        share: "Share link",
         shareDone: "Copied",
         shareManual: "Copy the link below",
         shareLabel: "Share link",
@@ -1174,7 +1235,7 @@
         add: "追加",
         pasteHint: "カンマ区切りでまとめて追加できます。",
         empty: "まだ空です。最初のお店を追加してください。",
-        share: "共有リンクをコピー",
+        share: "リンクを共有",
         shareDone: "コピーしました",
         shareManual: "下のリンクをコピーしてください",
         shareLabel: "共有リンク",
@@ -1232,7 +1293,7 @@
         add: "添加",
         pasteHint: "用逗号分隔可以一次添加多家。",
         empty: "现在还是空的，先添加第一家吧。",
-        share: "复制分享链接",
+        share: "分享链接",
         shareDone: "已复制",
         shareManual: "请手动复制下方链接",
         shareLabel: "分享链接",
@@ -1290,7 +1351,7 @@
         add: "Añadir",
         pasteHint: "Sepáralos con comas para añadir varios a la vez.",
         empty: "Está vacío. Añade el primer sitio.",
-        share: "Copiar enlace",
+        share: "Compartir enlace",
         shareDone: "Copiado",
         shareManual: "Copia el enlace de abajo",
         shareLabel: "Enlace para compartir",
@@ -1348,7 +1409,7 @@
         add: "Hinzufügen",
         pasteHint: "Mit Kommas trennen, um mehrere auf einmal hinzuzufügen.",
         empty: "Noch leer. Füge das erste Lokal hinzu.",
-        share: "Link kopieren",
+        share: "Link teilen",
         shareDone: "Kopiert",
         shareManual: "Kopiere den Link unten",
         shareLabel: "Link zum Teilen",
@@ -2040,6 +2101,9 @@
       Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-aria]"), function (el) {
         el.setAttribute("aria-label", s[el.getAttribute("data-i18n-aria")]);
       });
+      Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-tip]"), function (el) {
+        el.setAttribute("data-tip", s[el.getAttribute("data-i18n-tip")]);
+      });
 
       var current = LANGS.filter(function (l) { return l.code === lang; })[0] || LANGS[1];
       langCode.textContent = current.short;
@@ -2352,25 +2416,42 @@
       save();
     });
 
+    function flashTip(text) {
+      shareBtn.setAttribute("data-tip", text);
+      setTimeout(function () { shareBtn.setAttribute("data-tip", S().share); }, 1800);
+    }
+
     shareBtn.addEventListener("click", function () {
       if (!items.length) {
         setHint("hintNoShare", true);
         return;
       }
       var url = shareLink();
-      function fallback() {
+
+      function showInput() {
         shareOut.hidden = false;
         shareOut.value = url;
         shareOut.select();
-        shareBtn.textContent = S().shareManual;
+        flashTip(S().shareManual);
       }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(function () {
-          shareBtn.textContent = S().shareDone;
-          setTimeout(function () { shareBtn.textContent = S().share; }, 1800);
-        }, fallback);
+
+      function copy() {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function () { flashTip(S().shareDone); }, showInput);
+        } else {
+          showInput();
+        }
+      }
+
+      // 기기의 공유 시트를 연다 — 카카오톡·메시지 등 설치된 앱이 그대로 뜬다
+      if (navigator.share) {
+        navigator.share({ title: S().title, text: S().title, url: url })["catch"](function (err) {
+          // 사용자가 시트를 닫은 경우는 조용히 넘어가고, 지원되지 않을 때만 복사로 대체
+          if (err && err.name === "AbortError") return;
+          copy();
+        });
       } else {
-        fallback();
+        copy();
       }
     });
 
