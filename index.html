@@ -301,6 +301,32 @@
   .lang-item .tick { font-family: var(--mono); font-size: 12px; opacity: 0; }
   .lang-item[aria-checked="true"] .tick { opacity: 1; }
 
+  .mode-switch {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+  }
+
+  .mode-btn {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-3);
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: color .18s ease, background .18s ease;
+  }
+
+  .mode-btn:hover { color: var(--ink); }
+  .mode-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
   /* ─── stage ─── */
   .stage {
     display: grid;
@@ -900,8 +926,13 @@
 
   <div class="stage">
     <div class="wheel-col">
+      <div class="mode-switch" role="group" id="mode-switch">
+        <button class="mode-btn" type="button" data-mode="wheel" aria-pressed="true" data-i18n="modeWheel">돌림판</button>
+        <button class="mode-btn" type="button" data-mode="ladder" aria-pressed="false" data-i18n="modeLadder">사다리타기</button>
+      </div>
+
       <div class="wheel-wrap">
-        <div class="needle"></div>
+        <div class="needle" id="needle"></div>
         <canvas id="wheel"></canvas>
         <button class="hub" id="hub" type="button">돌리기</button>
       </div>
@@ -910,6 +941,7 @@
 
       <div class="under-wheel">
         <p class="hint" id="hint"></p>
+        <button class="link-btn" id="reshuffle" type="button" data-i18n="reshuffle" hidden>새로 섞기</button>
         <div class="history">
           <span class="history-label" data-i18n="recent">지난 결과</span>
           <span class="history-chips" id="history-chips"></span>
@@ -1144,6 +1176,12 @@
         hintDecisionOn: "링크를 연 사람 모두 오늘 같은 결과를 봅니다. 가중치와 오늘 쉬는 곳은 잠시 꺼집니다.",
         hintDecisionOff: "각자 돌릴 때마다 결과가 달라집니다.",
         decisionBadge: "오늘의 결정",
+        modeWheel: "돌림판",
+        modeLadder: "사다리타기",
+        ladderGo: "아무 줄이나 골라 내려가기",
+        reshuffle: "새로 섞기",
+        ladderTip: "출발점을 누르면 내려갑니다. 가운데를 누르면 가로선을 넣거나 뺄 수 있어요.",
+        ladderRunning: "내려가는 중…",
         unskip: "다시 넣기",
         hintAllSkipped: "제외를 풀거나 식당을 더 추가해 주세요.",
         skipTip: "이름을 누르면 오늘만 빼둘 수 있어요.",
@@ -1202,6 +1240,12 @@
         hintDecisionOn: "Everyone who opens the link sees the same result today. Weighting and skips pause while this is on.",
         hintDecisionOff: "Each spin gives a fresh result.",
         decisionBadge: "Today's call",
+        modeWheel: "Wheel",
+        modeLadder: "Ladder",
+        ladderGo: "Take a random line",
+        reshuffle: "Reshuffle",
+        ladderTip: "Tap a starting point to follow it down. Tap between the lines to add or remove a rung.",
+        ladderRunning: "Following the line…",
         unskip: "Put back",
         hintAllSkipped: "Put a few back, or add more places.",
         skipTip: "Tap a name to skip it just for today.",
@@ -1260,6 +1304,12 @@
         hintDecisionOn: "リンクを開いた全員が今日は同じ結果を見ます。重み付けとお休みは一時的に無効になります。",
         hintDecisionOff: "まわすたびに結果が変わります。",
         decisionBadge: "今日の決定",
+        modeWheel: "ルーレット",
+        modeLadder: "あみだくじ",
+        ladderGo: "どれかの線で下りる",
+        reshuffle: "引き直す",
+        ladderTip: "スタート地点をタップすると下ります。線の間をタップすると横線を足したり消せます。",
+        ladderRunning: "下っています…",
         unskip: "戻す",
         hintAllSkipped: "除外を戻すか、お店を追加してください。",
         skipTip: "名前をタップすると今日だけ外せます。",
@@ -1318,6 +1368,12 @@
         hintDecisionOn: "打开链接的所有人今天看到相同结果。加权与今日休息会暂时停用。",
         hintDecisionOff: "每次转动都会得到新的结果。",
         decisionBadge: "今天的决定",
+        modeWheel: "转盘",
+        modeLadder: "画鬼脚",
+        ladderGo: "随便选一条线",
+        reshuffle: "重新洗牌",
+        ladderTip: "点击起点即可向下走。点击线之间可增删横线。",
+        ladderRunning: "正在向下…",
         unskip: "放回",
         hintAllSkipped: "请放回几家，或再添加餐厅。",
         skipTip: "点击名称可仅在今天跳过。",
@@ -1376,6 +1432,12 @@
         hintDecisionOn: "Todos los que abran el enlace ven el mismo resultado hoy. La ponderación y los saltos se pausan.",
         hintDecisionOff: "Cada giro da un resultado distinto.",
         decisionBadge: "Decisión de hoy",
+        modeWheel: "Ruleta",
+        modeLadder: "Escalera",
+        ladderGo: "Tomar una línea al azar",
+        reshuffle: "Rebarajar",
+        ladderTip: "Toca un punto de salida para seguirlo. Toca entre las líneas para añadir o quitar un travesaño.",
+        ladderRunning: "Siguiendo la línea…",
         unskip: "Volver a incluir",
         hintAllSkipped: "Vuelve a incluir alguno o añade más sitios.",
         skipTip: "Toca un nombre para saltarlo solo hoy.",
@@ -1434,6 +1496,12 @@
         hintDecisionOn: "Alle, die den Link öffnen, sehen heute dasselbe Ergebnis. Gewichtung und Pausen sind so lange aus.",
         hintDecisionOff: "Jeder Dreh liefert ein neues Ergebnis.",
         decisionBadge: "Heutige Wahl",
+        modeWheel: "Rad",
+        modeLadder: "Leiter",
+        ladderGo: "Zufällige Linie nehmen",
+        reshuffle: "Neu mischen",
+        ladderTip: "Tippe einen Startpunkt an, um ihm zu folgen. Tippe zwischen die Linien, um eine Sprosse zu setzen.",
+        ladderRunning: "Folge der Linie…",
         unskip: "Zurücklegen",
         hintAllSkipped: "Nimm welche zurück oder füge Lokale hinzu.",
         skipTip: "Tippe einen Namen an, um ihn nur heute zu überspringen.",
@@ -1463,6 +1531,7 @@
     var spinning = false;
     var weighted = true;
     var decision = false;    // 오늘의 결정 모드
+    var mode = "wheel";      // wheel | ladder
 
     /* 최근 1·2·3번째 결과에 곱하는 배수. 그 이전은 1 */
     var DECAY = [0.25, 0.5, 0.75];
@@ -1473,6 +1542,9 @@
     var ctx = canvas.getContext("2d");
     var hub = document.getElementById("hub");
     var spinBtn = document.getElementById("spin");
+    var reshuffleBtn = document.getElementById("reshuffle");
+    var needle = document.getElementById("needle");
+    var modeSwitch = document.getElementById("mode-switch");
     var hint = document.getElementById("hint");
     var listEl = document.getElementById("list");
     var emptyEl = document.getElementById("empty");
@@ -1543,6 +1615,61 @@
     function decisionPick(names) {
       var seed = seedFrom(today() + "|" + names.join("|"));
       return Math.floor(seededRandom(seed) * names.length) % names.length;
+    }
+
+    /* ── 사다리타기 ──
+       가로선은 (열, 행) 칸에 놓인다. 같은 행의 이웃 칸이 차 있으면 경로가 모호해지므로 막는다 */
+    var ladder = { rows: 0, cols: 0, names: [], rungs: {}, path: null, progress: 1, start: -1 };
+
+    function rungKey(c, r) { return c + ":" + r; }
+    function hasRung(c, r) { return ladder.rungs[rungKey(c, r)] === true; }
+
+    function canPlace(c, r) {
+      return c >= 0 && c < ladder.cols - 1 && r >= 0 && r < ladder.rows &&
+             !hasRung(c - 1, r) && !hasRung(c + 1, r);
+    }
+
+    function buildLadder() {
+      var names = activeItems();
+      var n = names.length;
+      var rows = Math.max(6, Math.min(12, n * 2));
+      ladder = { rows: rows, cols: n, names: names, rungs: {}, path: null, progress: 1, start: -1 };
+      if (n < 2) return;
+
+      // 오늘의 결정 중에는 사다리 모양도 날짜로 고정해 모두가 같은 그림을 본다
+      var seed = seedFrom(today() + "|ladder|" + names.join("|"));
+      var step = 0;
+      var rnd = decision
+        ? function () { return seededRandom((seed + (step++) * 0x9E3779B9) >>> 0); }
+        : Math.random;
+
+      for (var r = 0; r < rows; r++) {
+        for (var c = 0; c < n - 1; c++) {
+          if (rnd() < 0.42 && canPlace(c, r)) ladder.rungs[rungKey(c, r)] = true;
+        }
+      }
+    }
+
+    function toggleRung(c, r) {
+      var key = rungKey(c, r);
+      if (ladder.rungs[key]) delete ladder.rungs[key];
+      else if (canPlace(c, r)) ladder.rungs[key] = true;
+      else return false;
+      ladder.path = null;
+      drawLadder();
+      return true;
+    }
+
+    /* 출발 열에서 아래로 내려가며 만나는 가로선마다 옆으로 건너간다 */
+    function tracePath(start) {
+      var c = start;
+      var pts = [{ c: c, r: 0 }];
+      for (var r = 0; r < ladder.rows; r++) {
+        if (hasRung(c, r)) { c += 1; pts.push({ c: c, r: r }); }
+        else if (hasRung(c - 1, r)) { c -= 1; pts.push({ c: c, r: r }); }
+      }
+      pts.push({ c: c, r: ladder.rows });
+      return { pts: pts, end: c };
     }
 
     /* ── 오늘만 빼기 ── */
@@ -1642,6 +1769,7 @@
     }
 
     function draw() {
+      if (mode === "ladder") { drawLadder(); return; }
       var side = canvas.width / Math.min(window.devicePixelRatio || 1, 2.5);
       var cx = side / 2;
       var cy = side / 2;
@@ -1785,6 +1913,117 @@
       return w;
     }
 
+    /* ── 사다리 그리기 ── */
+    function ladderGeom(side) {
+      var padX = side * 0.09;
+      var top = side * 0.11;
+      var bottom = side * 0.70;
+      var n = Math.max(ladder.cols, 1);
+      var gap = n > 1 ? (side - padX * 2) / (n - 1) : 0;
+      return {
+        x: function (c) { return n > 1 ? padX + c * gap : side / 2; },
+        y: function (r) { return top + (bottom - top) * (r / ladder.rows); },
+        top: top, bottom: bottom, gap: gap, padX: padX
+      };
+    }
+
+    function drawLadder() {
+      var side = canvas.width / Math.min(window.devicePixelRatio || 1, 2.5);
+      ctx.clearRect(0, 0, side, side);
+
+      var n = ladder.cols;
+      if (n < 2) {
+        var msg = items.length ? S().canvasAllSkipped : S().canvasEmpty;
+        ctx.fillStyle = css["--ink-3"];
+        ctx.font = wheelFont(700, Math.round(side * 0.042));
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(msg, side / 2, side / 2);
+        return;
+      }
+
+      var g = ladderGeom(side);
+      var fs = Math.max(9, Math.min(side * 0.032, g.gap * 0.9));
+
+      // 세로줄
+      ctx.strokeStyle = css["--line-strong"];
+      ctx.lineWidth = 2;
+      for (var c = 0; c < n; c++) {
+        ctx.beginPath();
+        ctx.moveTo(g.x(c), g.top);
+        ctx.lineTo(g.x(c), g.bottom);
+        ctx.stroke();
+      }
+
+      // 가로선
+      ctx.lineWidth = 3;
+      for (var r = 0; r < ladder.rows; r++) {
+        for (var c2 = 0; c2 < n - 1; c2++) {
+          if (!hasRung(c2, r)) continue;
+          ctx.strokeStyle = colorFor(c2, n);
+          ctx.beginPath();
+          ctx.moveTo(g.x(c2), g.y(r + 0.5));
+          ctx.lineTo(g.x(c2 + 1), g.y(r + 0.5));
+          ctx.stroke();
+        }
+      }
+
+      // 출발점
+      for (var c3 = 0; c3 < n; c3++) {
+        var on = ladder.start === c3;
+        ctx.beginPath();
+        ctx.arc(g.x(c3), g.top - side * 0.035, side * 0.021, 0, TAU);
+        ctx.fillStyle = on ? css["--ink"] : colorFor(c3, n);
+        ctx.fill();
+      }
+
+      // 도착지 이름 — 좁으니 세로로 세워 쓴다
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      for (var c4 = 0; c4 < n; c4++) {
+        ctx.save();
+        ctx.translate(g.x(c4), g.bottom + side * 0.03);
+        ctx.rotate(Math.PI / 2);
+        ctx.font = wheelFont(ladder.path && ladder.path.end === c4 ? 800 : 600, fs.toFixed(1));
+        ctx.fillStyle = ladder.path && ladder.path.end === c4 ? colorFor(c4, n) : css["--ink-2"];
+        ctx.fillText(fit(ladder.names[c4], side * 0.24), 0, 0);
+        ctx.restore();
+      }
+      ctx.restore();
+
+      // 지나온 경로
+      if (ladder.path) {
+        var pts = ladder.path.pts;
+        var segs = [];
+        for (var i = 0; i < pts.length - 1; i++) {
+          var a = pts[i], b = pts[i + 1];
+          var ax = g.x(a.c), ay = i === 0 ? g.top : g.y(a.r + 0.5);
+          var bx = g.x(b.c), by = i === pts.length - 2 ? g.bottom : g.y(b.r + 0.5);
+          if (a.c !== b.c) { segs.push([ax, ay, ax, by]); segs.push([ax, by, bx, by]); }
+          else segs.push([ax, ay, bx, by]);
+        }
+        var total = segs.reduce(function (t, s2) { return t + Math.hypot(s2[2] - s2[0], s2[3] - s2[1]); }, 0);
+        var drawLen = total * ladder.progress;
+
+        ctx.strokeStyle = colorFor(ladder.start, n);
+        ctx.lineWidth = 4;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        for (var j = 0; j < segs.length && drawLen > 0; j++) {
+          var s3 = segs[j];
+          var len = Math.hypot(s3[2] - s3[0], s3[3] - s3[1]);
+          var k = Math.min(1, drawLen / (len || 1));
+          ctx.moveTo(s3[0], s3[1]);
+          ctx.lineTo(s3[0] + (s3[2] - s3[0]) * k, s3[1] + (s3[3] - s3[1]) * k);
+          drawLen -= len;
+        }
+        ctx.stroke();
+        ctx.lineCap = "butt";
+      }
+    }
+
     function fit(text, width) {
       if (ctx.measureText(text).width <= width) return text;
       var cut = text;
@@ -1916,11 +2155,31 @@
       requestAnimationFrame(frame);
     }
 
+    function applyMode() {
+      var isLadder = mode === "ladder";
+      needle.hidden = isLadder;
+      hub.hidden = isLadder;
+      reshuffleBtn.hidden = !isLadder;
+      canvas.style.cursor = isLadder ? "pointer" : "default";
+      Array.prototype.forEach.call(modeSwitch.children, function (b) {
+        b.setAttribute("aria-pressed", String(b.getAttribute("data-mode") === mode));
+      });
+      if (isLadder) {
+        buildLadder();
+        setHint("ladderTip", false);
+      } else {
+        setHint(activeItems().length < 2 ? "hintStart" : "hintReady", false);
+      }
+      setBusy(spinning);
+      draw();
+    }
+
     function setBusy(on) {
       spinBtn.disabled = on;
       hub.disabled = on;
       hub.textContent = on ? "…" : S().hub;
-      spinBtn.textContent = on ? S().spinning : S().spin;
+      if (mode === "ladder") spinBtn.textContent = on ? S().ladderRunning : S().ladderGo;
+      else spinBtn.textContent = on ? S().spinning : S().spin;
     }
 
     function setHint(key, warn) {
@@ -2062,6 +2321,8 @@
       });
 
       skipTray.hidden = live === n;
+
+      if (mode === "ladder" && ladder.names.join("|") !== L.names.join("|")) buildLadder();
 
       emptyEl.hidden = n > 0;
       countEl.textContent = S().count(live) + (n - live ? " · " + S().excluded(n - live) : "");
@@ -2314,7 +2575,7 @@
       try {
         localStorage.setItem(STORE_KEY, JSON.stringify({
           items: items, history: history, lang: lang, weighted: weighted, theme: theme,
-          skipped: skipped, skipDate: skipDate, decision: decision
+          skipped: skipped, skipDate: skipDate, decision: decision, mode: mode
         }));
       } catch (e) { /* 저장이 막혀 있어도 그냥 쓴다 */ }
     }
@@ -2340,6 +2601,7 @@
         if (Array.isArray(saved.history)) history = saved.history.slice(0, DECAY.length);
         if (typeof saved.weighted === "boolean") weighted = saved.weighted;
         if (typeof saved.decision === "boolean") decision = saved.decision;
+        if (saved.mode === "ladder" || saved.mode === "wheel") mode = saved.mode;
         if (saved.theme) theme = saved.theme;
         // 오늘만 빼둔 목록은 날짜가 바뀌면 저절로 풀린다
         if (saved.skipDate === today() && Array.isArray(saved.skipped)) {
@@ -2375,7 +2637,84 @@
       input.focus();
     });
 
-    spinBtn.addEventListener("click", spin);
+    /* 사다리를 따라 내려가는 애니메이션 */
+    function runLadder(start) {
+      if (spinning || ladder.cols < 2) return;
+      spinning = true;
+      setBusy(true);
+      setHint("ladderRunning", false);
+
+      ladder.start = start;
+      ladder.path = tracePath(start);
+      ladder.progress = 0;
+
+      var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var dur = reduced ? 300 : 1500;
+      var t0 = performance.now();
+      var lastTick = 0;
+
+      function frame(now) {
+        var p = Math.min(1, (now - t0) / dur);
+        ladder.progress = p;
+        if (now - lastTick > 90) { tick(); lastTick = now; }
+        drawLadder();
+        if (p < 1) requestAnimationFrame(frame);
+        else {
+          spinning = false;
+          setBusy(false);
+          finish(ladder.path.end, ladder.names);
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function startAny() {
+      if (mode !== "ladder") { spin(); return; }
+      var n = ladder.cols;
+      if (n < 2) { setHint(items.length >= 2 ? "hintAllSkipped" : "hintNeedTwo", true); return; }
+      runLadder(decision ? decisionPick(ladder.names) : randInt(n));
+    }
+
+    canvas.addEventListener("click", function (e) {
+      if (mode !== "ladder" || spinning || ladder.cols < 2) return;
+      var box = canvas.getBoundingClientRect();
+      var side = box.width;
+      var x = (e.clientX - box.left) / box.width * side;
+      var y = (e.clientY - box.top) / box.height * side;
+      var g = ladderGeom(side);
+
+      // 위쪽 = 출발
+      if (y < g.top + side * 0.02) {
+        var col = Math.round((x - g.padX) / (g.gap || 1));
+        if (col >= 0 && col < ladder.cols && Math.abs(x - g.x(col)) < g.gap * 0.45) runLadder(col);
+        return;
+      }
+      // 사다리 안쪽 = 가로선 넣기/빼기
+      if (y > g.top && y < g.bottom) {
+        var c = Math.floor((x - g.padX) / (g.gap || 1));
+        var r = Math.floor((y - g.top) / ((g.bottom - g.top) / ladder.rows));
+        if (c >= 0 && c < ladder.cols - 1 && r >= 0 && r < ladder.rows) toggleRung(c, r);
+      }
+    });
+
+    Array.prototype.forEach.call(modeSwitch.children, function (btn) {
+      btn.addEventListener("click", function () {
+        var next = btn.getAttribute("data-mode");
+        if (next === mode || spinning) return;
+        mode = next;
+        applyMode();
+        save();
+      });
+    });
+
+    reshuffleBtn.addEventListener("click", function () {
+      if (spinning) return;
+      buildLadder();
+      setHint("ladderTip", false);
+      draw();
+    });
+
+    spinBtn.addEventListener("click", startAny);
     hub.addEventListener("click", spin);
 
     document.getElementById("clear").addEventListener("click", function () {
@@ -2463,7 +2802,8 @@
     document.getElementById("close").addEventListener("click", closeResult);
     document.getElementById("again").addEventListener("click", function () {
       closeResult();
-      spin();
+      if (mode === "ladder") { buildLadder(); draw(); }
+      startAny();
     });
 
     document.getElementById("exclude").addEventListener("click", function () {
@@ -2482,7 +2822,7 @@
       if (e.key === "Escape" && !themeMenu.hidden) closeThemeMenu(true);
       else if (e.key === "Escape" && !langMenu.hidden) closeMenu(true);
       else if (e.key === "Escape" && !overlay.hidden) closeResult();
-      if (e.key === " " && e.target === document.body) { e.preventDefault(); spin(); }
+      if (e.key === " " && e.target === document.body) { e.preventDefault(); startAny(); }
     });
 
     window.addEventListener("resize", sizeCanvas);
@@ -2502,6 +2842,7 @@
     applyTheme();
     hintKey = activeItems().length >= 2 ? "hintReady" : "hintStart";
     applyLang();
+    applyMode();
     sizeCanvas();
   })();
 </script>
