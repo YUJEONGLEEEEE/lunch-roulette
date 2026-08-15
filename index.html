@@ -399,6 +399,7 @@
   }
 
   .hint { margin: 0; font-size: 13px; color: var(--ink-3); }
+  .hints { display: flex; flex-direction: column; gap: 2px; }
   .hint.warn { color: var(--accent); font-weight: 700; }
 
   .history {
@@ -597,8 +598,63 @@
     cursor: pointer;
   }
 
-  .chip.skipped { opacity: .6; }
-  .chip.skipped .chip-name { text-decoration: line-through; color: var(--ink-3); }
+  .chip-name:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-style: dotted; }
+
+  /* 오늘 쉬는 곳 — 목록에서 내려온 항목이 머무는 칸 */
+  .tray {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 12px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 10px;
+    background: var(--ground);
+  }
+
+  .tray[hidden] { display: none; }
+
+  .tray-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    flex: none;
+  }
+
+  .tray-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .tray-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 100%;
+    padding: 5px 8px 5px 10px;
+    font-size: 13.5px;
+    color: var(--ink-3);
+    background: transparent;
+    border: 1px dashed var(--line-strong);
+    border-radius: 8px;
+  }
+
+  .tray-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .tray-back {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--ink-3);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .tray-back:hover { background: var(--surface-2); color: var(--deep); }
 
   .chip-odds {
     flex: none;
@@ -808,11 +864,18 @@
         <button class="add-btn" type="submit" data-i18n="add">추가</button>
       </form>
 
-      <p class="hint" data-i18n="pasteHint">쉼표로 구분하면 한 번에 여러 곳을 넣을 수 있어요.</p>
-      <p class="hint" data-i18n="skipTip">이름을 누르면 오늘만 빼둘 수 있어요.</p>
+      <div class="hints">
+        <p class="hint" data-i18n="pasteHint">쉼표로 구분하면 한 번에 여러 곳을 넣을 수 있어요.</p>
+        <p class="hint" data-i18n="skipTip">이름을 누르면 오늘만 빼둘 수 있어요.</p>
+      </div>
 
       <ul class="list" id="list"></ul>
       <p class="empty" id="empty" data-i18n="empty">아직 비어 있어요.</p>
+
+      <div class="tray" id="skip-tray" hidden>
+        <span class="tray-label" data-i18n="skippedTray">오늘 쉬는 곳</span>
+        <ul class="tray-list" id="tray-list"></ul>
+      </div>
 
       <div class="panel-foot">
         <button class="ghost" id="weight" type="button" aria-pressed="true"></button>
@@ -997,6 +1060,7 @@
         clearHistory: "이전 결과 지우기",
         clearShort: "지우기",
         skipToday: "오늘만 빼기",
+        skippedTray: "오늘 쉬는 곳",
         unskip: "다시 넣기",
         hintAllSkipped: "제외를 풀거나 식당을 더 추가해 주세요.",
         skipTip: "이름을 누르면 오늘만 빼둘 수 있어요.",
@@ -1050,6 +1114,7 @@
         clearHistory: "Clear past results",
         clearShort: "Clear",
         skipToday: "Skip today",
+        skippedTray: "Sitting out today",
         unskip: "Put back",
         hintAllSkipped: "Put a few back, or add more places.",
         skipTip: "Tap a name to skip it just for today.",
@@ -1103,6 +1168,7 @@
         clearHistory: "これまでの結果を削除",
         clearShort: "削除",
         skipToday: "今日は外す",
+        skippedTray: "今日はお休み",
         unskip: "戻す",
         hintAllSkipped: "除外を戻すか、お店を追加してください。",
         skipTip: "名前をタップすると今日だけ外せます。",
@@ -1156,6 +1222,7 @@
         clearHistory: "清除历史结果",
         clearShort: "清除",
         skipToday: "今天跳过",
+        skippedTray: "今天休息",
         unskip: "放回",
         hintAllSkipped: "请放回几家，或再添加餐厅。",
         skipTip: "点击名称可仅在今天跳过。",
@@ -1209,6 +1276,7 @@
         clearHistory: "Borrar resultados anteriores",
         clearShort: "Borrar",
         skipToday: "Saltar hoy",
+        skippedTray: "Descansan hoy",
         unskip: "Volver a incluir",
         hintAllSkipped: "Vuelve a incluir alguno o añade más sitios.",
         skipTip: "Toca un nombre para saltarlo solo hoy.",
@@ -1262,6 +1330,7 @@
         clearHistory: "Bisherige Ergebnisse löschen",
         clearShort: "Löschen",
         skipToday: "Heute überspringen",
+        skippedTray: "Heute pausiert",
         unskip: "Zurücklegen",
         hintAllSkipped: "Nimm welche zurück oder füge Lokale hinzu.",
         skipTip: "Tippe einen Namen an, um ihn nur heute zu überspringen.",
@@ -1303,6 +1372,8 @@
     var hint = document.getElementById("hint");
     var listEl = document.getElementById("list");
     var emptyEl = document.getElementById("empty");
+    var skipTray = document.getElementById("skip-tray");
+    var trayList = document.getElementById("tray-list");
     var countEl = document.getElementById("count");
     var chipsEl = document.getElementById("history-chips");
     var emptyHistEl = document.getElementById("history-empty");
@@ -1793,21 +1864,44 @@
       // 가중치가 실제로 갈릴 때만 확률을 적는다
       var showOdds = weighted && L.w.some(function (x) { return x !== L.w[0]; });
 
+      trayList.textContent = "";
+
       items.forEach(function (name, i) {
-        var off = isSkipped(name);
-        var pos = L.names.indexOf(name);          // 원판에서의 자리 = 칩 색
+        if (isSkipped(name)) {
+          // 오늘 쉬는 곳은 목록에서 내려와 아래 칸에 머문다
+          var back = document.createElement("li");
+          back.className = "tray-item";
+
+          var label = document.createElement("span");
+          label.className = "tray-name";
+          label.textContent = name;
+
+          var undo = document.createElement("button");
+          undo.className = "tray-back";
+          undo.type = "button";
+          undo.textContent = "↩";
+          undo.title = S().unskip;
+          undo.setAttribute("aria-label", name + " — " + S().unskip);
+          undo.addEventListener("click", function () { toggleSkip(name); });
+
+          back.appendChild(label);
+          back.appendChild(undo);
+          trayList.appendChild(back);
+          return;
+        }
+
+        var pos = L.names.indexOf(name);           // 원판에서의 자리 = 칩 색
 
         var li = document.createElement("li");
-        li.className = "chip" + (off ? " skipped" : "");
-        li.style.setProperty("--chip", off ? "var(--line-strong)" : colorFor(pos, live));
+        li.className = "chip";
+        li.style.setProperty("--chip", colorFor(pos, live));
 
         var span = document.createElement("button");
         span.className = "chip-name";
         span.type = "button";
         span.textContent = name;
-        span.title = off ? S().unskip : S().skipToday;
-        span.setAttribute("aria-pressed", String(off));
-        span.setAttribute("aria-label", name + " — " + (off ? S().unskip : S().skipToday));
+        span.title = S().skipToday;
+        span.setAttribute("aria-label", name + " — " + S().skipToday);
         span.addEventListener("click", function () { toggleSkip(name); });
 
         var x = document.createElement("button");
@@ -1819,7 +1913,7 @@
 
         li.appendChild(span);
 
-        if (showOdds && !off) {
+        if (showOdds) {
           var odds = document.createElement("span");
           odds.className = "chip-odds";
           odds.textContent = Math.round(L.w[pos] / L.total * 100) + "%";
@@ -1829,6 +1923,8 @@
         li.appendChild(x);
         listEl.appendChild(li);
       });
+
+      skipTray.hidden = live === n;
 
       emptyEl.hidden = n > 0;
       countEl.textContent = S().count(live) + (n - live ? " · " + S().excluded(n - live) : "");
