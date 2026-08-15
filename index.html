@@ -584,7 +584,21 @@
     75% { transform: translateX(4px); }
   }
 
-  .chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--body);
+    font-size: 14.5px;
+    color: var(--ink);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .chip.skipped { opacity: .6; }
+  .chip.skipped .chip-name { text-decoration: line-through; color: var(--ink-3); }
 
   .chip-odds {
     flex: none;
@@ -795,6 +809,7 @@
       </form>
 
       <p class="hint" data-i18n="pasteHint">쉼표로 구분하면 한 번에 여러 곳을 넣을 수 있어요.</p>
+      <p class="hint" data-i18n="skipTip">이름을 누르면 오늘만 빼둘 수 있어요.</p>
 
       <ul class="list" id="list"></ul>
       <p class="empty" id="empty" data-i18n="empty">아직 비어 있어요.</p>
@@ -981,6 +996,12 @@
         hintHistoryCleared: "지난 결과를 지웠어요. 모든 식당이 같은 확률입니다.",
         clearHistory: "이전 결과 지우기",
         clearShort: "지우기",
+        skipToday: "오늘만 빼기",
+        unskip: "다시 넣기",
+        hintAllSkipped: "제외를 풀거나 식당을 더 추가해 주세요.",
+        skipTip: "이름을 누르면 오늘만 빼둘 수 있어요.",
+        canvasAllSkipped: "오늘은 모두 제외됐어요",
+        excluded: function (n) { return n + "곳 제외"; },
         theme: "색상 테마",
         themes: { paper: "기본", spring: "봄", summer: "여름", autumn: "가을", winter: "겨울", pastel: "파스텔", midnight: "다크모드" },
         historyEmpty: "아직 없음",
@@ -1028,6 +1049,12 @@
         hintHistoryCleared: "Past results cleared. Every place has the same odds again.",
         clearHistory: "Clear past results",
         clearShort: "Clear",
+        skipToday: "Skip today",
+        unskip: "Put back",
+        hintAllSkipped: "Put a few back, or add more places.",
+        skipTip: "Tap a name to skip it just for today.",
+        canvasAllSkipped: "Everything is skipped today",
+        excluded: function (n) { return n + " skipped"; },
         theme: "Color theme",
         themes: { paper: "Paper", spring: "Spring", summer: "Summer", autumn: "Autumn", winter: "Winter", pastel: "Pastel", midnight: "Dark" },
         historyEmpty: "None yet",
@@ -1075,6 +1102,12 @@
         hintHistoryCleared: "これまでの結果を削除しました。すべて同じ確率です。",
         clearHistory: "これまでの結果を削除",
         clearShort: "削除",
+        skipToday: "今日は外す",
+        unskip: "戻す",
+        hintAllSkipped: "除外を戻すか、お店を追加してください。",
+        skipTip: "名前をタップすると今日だけ外せます。",
+        canvasAllSkipped: "今日はすべて除外中です",
+        excluded: function (n) { return n + "件 除外"; },
         theme: "カラーテーマ",
         themes: { paper: "標準", spring: "春", summer: "夏", autumn: "秋", winter: "冬", pastel: "パステル", midnight: "ダークモード" },
         historyEmpty: "まだありません",
@@ -1122,6 +1155,12 @@
         hintHistoryCleared: "已清除历史结果。所有餐厅概率相同。",
         clearHistory: "清除历史结果",
         clearShort: "清除",
+        skipToday: "今天跳过",
+        unskip: "放回",
+        hintAllSkipped: "请放回几家，或再添加餐厅。",
+        skipTip: "点击名称可仅在今天跳过。",
+        canvasAllSkipped: "今天全部被跳过",
+        excluded: function (n) { return "跳过 " + n + " 家"; },
         theme: "配色主题",
         themes: { paper: "默认", spring: "春", summer: "夏", autumn: "秋", winter: "冬", pastel: "马卡龙", midnight: "深色模式" },
         historyEmpty: "暂无",
@@ -1169,6 +1208,12 @@
         hintHistoryCleared: "Resultados borrados. Todos los sitios vuelven a tener la misma probabilidad.",
         clearHistory: "Borrar resultados anteriores",
         clearShort: "Borrar",
+        skipToday: "Saltar hoy",
+        unskip: "Volver a incluir",
+        hintAllSkipped: "Vuelve a incluir alguno o añade más sitios.",
+        skipTip: "Toca un nombre para saltarlo solo hoy.",
+        canvasAllSkipped: "Hoy están todos saltados",
+        excluded: function (n) { return n + " saltados"; },
         theme: "Tema de color",
         themes: { paper: "Papel", spring: "Primavera", summer: "Verano", autumn: "Otoño", winter: "Invierno", pastel: "Pastel", midnight: "Modo oscuro" },
         historyEmpty: "Aún no hay",
@@ -1216,6 +1261,12 @@
         hintHistoryCleared: "Verlauf gelöscht. Alle Lokale haben wieder die gleiche Chance.",
         clearHistory: "Bisherige Ergebnisse löschen",
         clearShort: "Löschen",
+        skipToday: "Heute überspringen",
+        unskip: "Zurücklegen",
+        hintAllSkipped: "Nimm welche zurück oder füge Lokale hinzu.",
+        skipTip: "Tippe einen Namen an, um ihn nur heute zu überspringen.",
+        canvasAllSkipped: "Heute sind alle übersprungen",
+        excluded: function (n) { return n + " übersprungen"; },
         theme: "Farbthema",
         themes: { paper: "Papier", spring: "Frühling", summer: "Sommer", autumn: "Herbst", winter: "Winter", pastel: "Pastell", midnight: "Dunkelmodus" },
         historyEmpty: "Noch keine",
@@ -1228,6 +1279,8 @@
     };
 
     var items = [];
+    var skipped = [];        // 오늘만 빼둔 곳
+    var skipDate = "";       // 그 제외가 유효한 날짜
     var history = [];
     var lang = "ko";
     var theme = "paper";
@@ -1290,6 +1343,31 @@
       return PALETTE[idx];
     }
 
+    /* ── 오늘만 빼기 ── */
+    function today() {
+      var d = new Date();
+      return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+    }
+
+    function isSkipped(name) {
+      return skipped.indexOf(name) !== -1;
+    }
+
+    /* 오늘 원판에 올라갈 후보 */
+    function activeItems() {
+      return items.filter(function (n) { return !isSkipped(n); });
+    }
+
+    function toggleSkip(name) {
+      var at = skipped.indexOf(name);
+      if (at === -1) skipped.push(name); else skipped.splice(at, 1);
+      skipDate = today();
+      render();
+      var n = activeItems().length;
+      setHint(n < 2 ? "hintAllSkipped" : "hintReady", n < 2);
+      save();
+    }
+
     /* ── 가중치: 최근에 나온 곳일수록 낮게 ── */
     function weightOf(name) {
       if (!weighted) return 1;
@@ -1300,7 +1378,8 @@
     /* 조각 시작 각도와 폭을 가중치 비율 그대로 계산한다.
        추첨과 그리기가 같은 표를 쓰므로 보이는 넓이 = 실제 확률 */
     function layout() {
-      var w = items.map(weightOf);
+      var names = activeItems();
+      var w = names.map(weightOf);
       var total = 0;
       var i;
       for (i = 0; i < w.length; i++) total += w[i];
@@ -1313,6 +1392,7 @@
         acc += w[i];
       }
       return {
+        names: names,
         w: w,
         total: total,
         starts: starts,
@@ -1366,7 +1446,11 @@
 
       ctx.clearRect(0, 0, side, side);
 
-      if (items.length === 0) {
+      var L = layout();
+      var n = L.names.length;
+
+      if (n === 0) {
+        var msg = items.length ? S().canvasAllSkipped : S().canvasEmpty;
         ctx.save();
         ctx.strokeStyle = css["--line-strong"];
         ctx.setLineDash([7, 8]);
@@ -1379,10 +1463,10 @@
         // 문구는 허브 버튼에 가리지 않도록 허브 아래에, 필요하면 두 줄로
         var maxW = side * 0.62;
         var fs = Math.round(side * 0.042);
-        var lines = wrapText(S().canvasEmpty, maxW, fs);
+        var lines = wrapText(msg, maxW, fs);
         while (fs > 11 && widest(lines, fs) > maxW) {
           fs -= 1;
-          lines = wrapText(S().canvasEmpty, maxW, fs);
+          lines = wrapText(msg, maxW, fs);
         }
 
         ctx.fillStyle = css["--ink-3"];
@@ -1397,9 +1481,6 @@
         ctx.restore();
         return;
       }
-
-      var n = items.length;
-      var L = layout();
 
       ctx.save();
       ctx.translate(cx, cy);
@@ -1435,7 +1516,7 @@
         ctx.font = wheelFont(800, fs.toFixed(1));
         ctx.textBaseline = "middle";
 
-        var label = fit(items[i], avail);
+        var label = fit(L.names[i], avail);
         var abs = norm(mid + rot);
         var flipped = abs > Math.PI / 2 && abs < Math.PI * 1.5;
 
@@ -1578,8 +1659,9 @@
 
     function spin() {
       if (spinning) return;
-      if (items.length < 2) {
-        setHint("hintNeedTwo", true);
+      var live = activeItems();
+      if (live.length < 2) {
+        setHint(items.length >= 2 ? "hintAllSkipped" : "hintNeedTwo", true);
         input.focus();
         return;
       }
@@ -1624,7 +1706,7 @@
           draw();
           spinning = false;
           setBusy(false);
-          finish(winner);
+          finish(winner, L.names);
         }
       }
       requestAnimationFrame(frame);
@@ -1644,10 +1726,10 @@
       hint.classList.toggle("warn", hintWarn);
     }
 
-    function finish(winner) {
-      var name = items[winner];
+    function finish(winner, live) {
+      var name = live[winner];
       resultName.textContent = name;
-      resultName.style.setProperty("--win", colorFor(winner, items.length));
+      resultName.style.setProperty("--win", colorFor(winner, live.length));
       overlay.hidden = false;
       document.getElementById("again").focus();
       live.textContent = S().result(name);
@@ -1660,7 +1742,7 @@
 
       // 새 가중치로 조각 폭이 달라지므로, 당첨 조각이 계속 바늘 아래 오도록 맞춘다
       var after = layout();
-      var at = items.indexOf(name);
+      var at = after.names.indexOf(name);
       if (at !== -1) rot = norm(-(after.starts[at] + after.angle(at) / 2));
 
       renderHistory();
@@ -1683,7 +1765,7 @@
         added++;
       });
 
-      if (added) setHint(items.length < 2 ? "hintStart" : "hintReady", false);
+      if (added) setHint(activeItems().length < 2 ? "hintStart" : "hintReady", false);
       render();
       if (dupIndex !== -1) flashDup(dupIndex);
       return added;
@@ -1707,17 +1789,26 @@
       listEl.textContent = "";
       var n = items.length;
       var L = layout();
+      var live = L.names.length;
       // 가중치가 실제로 갈릴 때만 확률을 적는다
       var showOdds = weighted && L.w.some(function (x) { return x !== L.w[0]; });
 
       items.forEach(function (name, i) {
-        var li = document.createElement("li");
-        li.className = "chip";
-        li.style.setProperty("--chip", colorFor(i, n));
+        var off = isSkipped(name);
+        var pos = L.names.indexOf(name);          // 원판에서의 자리 = 칩 색
 
-        var span = document.createElement("span");
+        var li = document.createElement("li");
+        li.className = "chip" + (off ? " skipped" : "");
+        li.style.setProperty("--chip", off ? "var(--line-strong)" : colorFor(pos, live));
+
+        var span = document.createElement("button");
         span.className = "chip-name";
+        span.type = "button";
         span.textContent = name;
+        span.title = off ? S().unskip : S().skipToday;
+        span.setAttribute("aria-pressed", String(off));
+        span.setAttribute("aria-label", name + " — " + (off ? S().unskip : S().skipToday));
+        span.addEventListener("click", function () { toggleSkip(name); });
 
         var x = document.createElement("button");
         x.className = "chip-x";
@@ -1728,10 +1819,10 @@
 
         li.appendChild(span);
 
-        if (showOdds) {
+        if (showOdds && !off) {
           var odds = document.createElement("span");
           odds.className = "chip-odds";
-          odds.textContent = Math.round(L.w[i] / L.total * 100) + "%";
+          odds.textContent = Math.round(L.w[pos] / L.total * 100) + "%";
           li.appendChild(odds);
         }
 
@@ -1740,7 +1831,7 @@
       });
 
       emptyEl.hidden = n > 0;
-      countEl.textContent = S().count(n);
+      countEl.textContent = S().count(live) + (n - live ? " · " + S().excluded(n - live) : "");
       shareOut.hidden = true;
       draw();
       save();
@@ -1965,12 +2056,12 @@
     });
 
     langMenu.addEventListener("keydown", function (e) {
-      var items = Array.prototype.slice.call(langMenu.children);
-      var at = items.indexOf(document.activeElement);
+      var opts = Array.prototype.slice.call(langMenu.children);
+      var at = opts.indexOf(document.activeElement);
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
-        var next = (at + (e.key === "ArrowDown" ? 1 : items.length - 1) + items.length) % items.length;
-        items[next].focus();
+        var next = (at + (e.key === "ArrowDown" ? 1 : opts.length - 1) + opts.length) % opts.length;
+        opts[next].focus();
       }
     });
 
@@ -1982,7 +2073,8 @@
     function save() {
       try {
         localStorage.setItem(STORE_KEY, JSON.stringify({
-          items: items, history: history, lang: lang, weighted: weighted, theme: theme
+          items: items, history: history, lang: lang, weighted: weighted, theme: theme,
+          skipped: skipped, skipDate: skipDate
         }));
       } catch (e) { /* 저장이 막혀 있어도 그냥 쓴다 */ }
     }
@@ -2007,6 +2099,11 @@
         if (Array.isArray(saved.history)) history = saved.history.slice(0, DECAY.length);
         if (typeof saved.weighted === "boolean") weighted = saved.weighted;
         if (saved.theme) theme = saved.theme;
+        // 오늘만 빼둔 목록은 날짜가 바뀌면 저절로 풀린다
+        if (saved.skipDate === today() && Array.isArray(saved.skipped)) {
+          skipped = saved.skipped;
+          skipDate = saved.skipDate;
+        }
       } catch (e) { /* 무시 */ }
     }
 
@@ -2106,7 +2203,7 @@
       var at = items.indexOf(resultName.textContent);
       if (at !== -1) remove(at);
       closeResult();
-      if (items.length >= 2) spin();
+      if (activeItems().length >= 2) spin();
       else setHint("hintFew", true);
     });
 
@@ -2136,7 +2233,7 @@
     buildMenu();
     buildThemeMenu();
     applyTheme();
-    hintKey = items.length >= 2 ? "hintReady" : "hintStart";
+    hintKey = activeItems().length >= 2 ? "hintReady" : "hintStart";
     applyLang();
     sizeCanvas();
   })();
