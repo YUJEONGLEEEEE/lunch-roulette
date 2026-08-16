@@ -543,6 +543,83 @@
     gap: 16px;
   }
 
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-3);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: color .16s ease, background .16s ease;
+  }
+
+  .tab:hover { color: var(--ink); background: var(--surface-2); }
+
+  .tab[aria-selected="true"] {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+
+  .tab-x {
+    display: none;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1;
+    color: inherit;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: .55;
+  }
+
+  .tab[aria-selected="true"] .tab-x { display: inline-block; }
+  .tab-x:hover { opacity: 1; }
+  .tab.confirm { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+
+  .tab-add {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--ink-3);
+    background: transparent;
+    border: 1px dashed var(--line-strong);
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+
+  .tab-add:hover { color: var(--accent); border-color: var(--accent); }
+
+  .tab-input {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 700;
+    width: 108px;
+    color: var(--ink);
+    background: var(--ground);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 6px 12px;
+  }
+
   .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 
   .panel-title {
@@ -1053,6 +1130,8 @@
     </div>
 
     <section class="panel">
+      <div class="tabs" id="tabs"></div>
+
       <div class="panel-head">
         <h2 class="panel-title" data-i18n="listTitle">식당 목록</h2>
         <span class="count" id="count"></span>
@@ -1295,6 +1374,13 @@
         tryMyself: "나도 돌려보기",
         resultText: function (name) { return "오늘 점심은 " + name + "!"; },
         pickedFrom: function (n, how) { return n + "곳 중에서 · " + how; },
+        groupDefault: "점심",
+        groupNew: "새 카테고리",
+        groupAdd: "카테고리 추가",
+        groupRename: "이름 바꾸기",
+        groupDelete: "삭제",
+        groupConfirm: "삭제?",
+        groupShared: "공유받은 목록",
         unskip: "다시 넣기",
         hintAllSkipped: "제외를 풀거나 식당을 더 추가해 주세요.",
         skipTip: "이름을 누르면 오늘만 빼둘 수 있어요.",
@@ -1360,6 +1446,13 @@
         tryMyself: "Try it myself",
         resultText: function (name) { return "Lunch today: " + name + "!"; },
         pickedFrom: function (n, how) { return "picked from " + n + " places · " + how; },
+        groupDefault: "Lunch",
+        groupNew: "New list",
+        groupAdd: "Add a list",
+        groupRename: "Rename",
+        groupDelete: "Delete",
+        groupConfirm: "Delete?",
+        groupShared: "Shared list",
         unskip: "Put back",
         hintAllSkipped: "Put a few back, or add more places.",
         skipTip: "Tap a name to skip it just for today.",
@@ -1425,6 +1518,13 @@
         tryMyself: "自分でもやってみる",
         resultText: function (name) { return "今日のランチは" + name + "！"; },
         pickedFrom: function (n, how) { return n + "件から · " + how; },
+        groupDefault: "ランチ",
+        groupNew: "新しいリスト",
+        groupAdd: "リストを追加",
+        groupRename: "名前を変える",
+        groupDelete: "削除",
+        groupConfirm: "削除？",
+        groupShared: "共有されたリスト",
         unskip: "戻す",
         hintAllSkipped: "除外を戻すか、お店を追加してください。",
         skipTip: "名前をタップすると今日だけ外せます。",
@@ -1490,6 +1590,13 @@
         tryMyself: "我也来一次",
         resultText: function (name) { return "今天的午餐是" + name + "！"; },
         pickedFrom: function (n, how) { return "从 " + n + " 家中选出 · " + how; },
+        groupDefault: "午餐",
+        groupNew: "新列表",
+        groupAdd: "添加列表",
+        groupRename: "重命名",
+        groupDelete: "删除",
+        groupConfirm: "删除？",
+        groupShared: "分享的列表",
         unskip: "放回",
         hintAllSkipped: "请放回几家，或再添加餐厅。",
         skipTip: "点击名称可仅在今天跳过。",
@@ -1555,6 +1662,13 @@
         tryMyself: "Probar yo también",
         resultText: function (name) { return "Hoy comemos en " + name + "!"; },
         pickedFrom: function (n, how) { return "de " + n + " sitios · " + how; },
+        groupDefault: "Comida",
+        groupNew: "Lista nueva",
+        groupAdd: "Añadir lista",
+        groupRename: "Renombrar",
+        groupDelete: "Eliminar",
+        groupConfirm: "¿Eliminar?",
+        groupShared: "Lista compartida",
         unskip: "Volver a incluir",
         hintAllSkipped: "Vuelve a incluir alguno o añade más sitios.",
         skipTip: "Toca un nombre para saltarlo solo hoy.",
@@ -1620,6 +1734,13 @@
         tryMyself: "Selbst ausprobieren",
         resultText: function (name) { return "Heute gibt es " + name + "!"; },
         pickedFrom: function (n, how) { return "aus " + n + " Lokalen · " + how; },
+        groupDefault: "Mittag",
+        groupNew: "Neue Liste",
+        groupAdd: "Liste hinzufügen",
+        groupRename: "Umbenennen",
+        groupDelete: "Löschen",
+        groupConfirm: "Löschen?",
+        groupShared: "Geteilte Liste",
         unskip: "Zurücklegen",
         hintAllSkipped: "Nimm welche zurück oder füge Lokale hinzu.",
         skipTip: "Tippe einen Namen an, um ihn nur heute zu überspringen.",
@@ -1635,6 +1756,9 @@
         result: function (name) { return "Ergebnis: " + name; }
       }
     };
+
+    var groups = [];         // [{ name, items, skipped, skipDate, history }]
+    var active = 0;          // 지금 보고 있는 카테고리
 
     var items = [];
     var skipped = [];        // 오늘만 빼둔 곳
@@ -1664,6 +1788,7 @@
     var modeSwitch = document.getElementById("mode-switch");
     var hint = document.getElementById("hint");
     var listEl = document.getElementById("list");
+    var tabsEl = document.getElementById("tabs");
     var emptyEl = document.getElementById("empty");
     var skipTray = document.getElementById("skip-tray");
     var trayList = document.getElementById("tray-list");
@@ -1731,6 +1856,68 @@
       z = Math.imul(z ^ (z >>> 15), 0x735A2D97) >>> 0;
       z = (z ^ (z >>> 15)) >>> 0;
       return z / 4294967296;
+    }
+
+    /* ── 카테고리 ──
+       화면이 쓰는 items/skipped/history 는 '지금 보고 있는 카테고리'의 값이다.
+       전환하거나 저장할 때 그 값을 해당 카테고리에 담아 둔다 */
+    function commitGroup() {
+      if (!groups[active]) return;
+      groups[active].items = items;
+      groups[active].skipped = skipped;
+      groups[active].skipDate = skipDate;
+      groups[active].history = history;
+    }
+
+    function loadGroup(i) {
+      var g = groups[i];
+      if (!g) return;
+      active = i;
+      items = g.items || [];
+      skipped = g.skipDate === today() ? (g.skipped || []) : [];
+      skipDate = g.skipDate || "";
+      history = (g.history || []).slice(0, DECAY.length);
+    }
+
+    function switchGroup(i) {
+      if (i === active || !groups[i] || spinning) return;
+      commitGroup();
+      loadGroup(i);
+      if (mode === "ladder") buildLadder();
+      setHint(activeItems().length < 2 ? "hintStart" : "hintReady", false);
+      renderTabs();
+      renderHistory();
+      render();
+      save();
+    }
+
+    function addGroup(name) {
+      commitGroup();
+      groups.push({ name: name, items: [], skipped: [], skipDate: "", history: [] });
+      loadGroup(groups.length - 1);
+      renderTabs();
+      renderHistory();
+      render();
+      save();
+    }
+
+    function removeGroup(i) {
+      if (groups.length < 2 || !groups[i]) return;
+      groups.splice(i, 1);
+      loadGroup(Math.max(0, Math.min(active > i ? active - 1 : active, groups.length - 1)));
+      if (mode === "ladder") buildLadder();
+      renderTabs();
+      renderHistory();
+      render();
+      save();
+    }
+
+    function renameGroup(i, name) {
+      var clean = String(name).trim().slice(0, 14);
+      if (!clean || !groups[i]) return;
+      groups[i].name = clean;
+      renderTabs();
+      save();
     }
 
     /* ── 사다리타기 ──
@@ -2518,6 +2705,85 @@
       save();
     }
 
+    var pendingDelete = -1;
+
+    function renderTabs() {
+      tabsEl.textContent = "";
+
+      groups.forEach(function (g, i) {
+        var tab = document.createElement("button");
+        tab.type = "button";
+        tab.className = "tab" + (pendingDelete === i ? " confirm" : "");
+        tab.setAttribute("role", "tab");
+        tab.setAttribute("aria-selected", String(i === active));
+
+        var label = document.createElement("span");
+        label.textContent = pendingDelete === i ? S().groupConfirm : g.name;
+        tab.appendChild(label);
+
+        tab.addEventListener("click", function () {
+          if (pendingDelete === i) { pendingDelete = -1; removeGroup(i); return; }
+          pendingDelete = -1;
+          if (i === active) startRename(i, tab, label);   // 이미 열린 탭을 누르면 이름 바꾸기
+          else switchGroup(i);
+        });
+
+        if (i === active && groups.length > 1) {
+          var x = document.createElement("button");
+          x.type = "button";
+          x.className = "tab-x";
+          x.textContent = "×";
+          x.title = S().groupDelete;
+          x.setAttribute("aria-label", g.name + " — " + S().groupDelete);
+          x.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (!items.length) { removeGroup(i); return; }   // 비어 있으면 바로
+            pendingDelete = pendingDelete === i ? -1 : i;     // 내용이 있으면 한 번 더 확인
+            renderTabs();
+          });
+          tab.appendChild(x);
+        }
+
+        tabsEl.appendChild(tab);
+      });
+
+      var add = document.createElement("button");
+      add.type = "button";
+      add.className = "tab-add";
+      add.textContent = "+";
+      add.title = S().groupAdd;
+      add.setAttribute("aria-label", S().groupAdd);
+      add.addEventListener("click", function () {
+        pendingDelete = -1;
+        addGroup(S().groupNew);
+        var last = tabsEl.children[groups.length - 1];
+        if (last) startRename(active, last, last.firstChild);
+      });
+      tabsEl.appendChild(add);
+    }
+
+    function startRename(i, tab, label) {
+      var input = document.createElement("input");
+      input.type = "text";
+      input.className = "tab-input";
+      input.value = groups[i].name;
+      input.maxLength = 14;
+
+      function done(save2) {
+        if (save2) renameGroup(i, input.value);
+        else renderTabs();
+      }
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); done(true); }
+        if (e.key === "Escape") { e.preventDefault(); done(false); }
+      });
+      input.addEventListener("blur", function () { done(true); });
+
+      tab.replaceWith(input);
+      input.focus();
+      input.select();
+    }
+
     function renderHistory() {
       chipsEl.textContent = "";
       // 지우기는 늘 자리를 지키되, 지울 기록이 없으면 비활성
@@ -2563,6 +2829,7 @@
         item.setAttribute("aria-checked", String(item.getAttribute("data-lang") === lang));
       });
 
+      renderTabs();
       setBusy(spinning);
       setHint(hintKey, hintWarn);
       if (shownResult && !overlay.hidden) {
@@ -2758,10 +3025,11 @@
 
     /* ── storage & sharing ── */
     function save() {
+      commitGroup();
       try {
         localStorage.setItem(STORE_KEY, JSON.stringify({
-          items: items, history: history, lang: lang, weighted: weighted, theme: theme,
-          skipped: skipped, skipDate: skipDate, mode: mode
+          v: 2, groups: groups, active: active,
+          lang: lang, theme: theme, weighted: weighted, mode: mode
         }));
       } catch (e) { /* 저장이 막혀 있어도 그냥 쓴다 */ }
     }
@@ -2769,30 +3037,44 @@
     function load() {
       lang = pickLang();
 
+      var saved = {};
+      try { saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch (e) { saved = {}; }
+
+      if (saved.lang && STRINGS[saved.lang]) lang = saved.lang;
+      if (saved.theme) theme = saved.theme;
+      if (typeof saved.weighted === "boolean") weighted = saved.weighted;
+      if (saved.mode === "ladder" || saved.mode === "wheel") mode = saved.mode;
+
+      if (Array.isArray(saved.groups) && saved.groups.length) {
+        groups = saved.groups.filter(function (g) { return g && typeof g === "object"; });
+      } else if (Array.isArray(saved.items)) {
+        // 카테고리가 없던 시절에 저장된 내용을 첫 카테고리로 옮긴다
+        groups = [{
+          name: S().groupDefault,
+          items: saved.items.filter(function (t) { return typeof t === "string" && t; }),
+          skipped: Array.isArray(saved.skipped) ? saved.skipped : [],
+          skipDate: saved.skipDate || "",
+          history: Array.isArray(saved.history) ? saved.history : []
+        }];
+      }
+      if (!groups.length) groups = [{ name: S().groupDefault, items: [], skipped: [], skipDate: "", history: [] }];
+
+      loadGroup(Math.min(Math.max(saved.active || 0, 0), groups.length - 1));
+
+      // 공유받은 목록은 내 카테고리를 덮지 않고 따로 담는다
       var fromHash = readHash();
       if (fromHash) {
-        items = fromHash;
-        try {
-          var keep = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
-          history = Array.isArray(keep.history) ? keep.history.slice(0, DECAY.length) : [];
-          if (typeof keep.weighted === "boolean") weighted = keep.weighted;
-          if (keep.theme) theme = keep.theme;
-        } catch (e) { /* 무시 */ }
-        return;
-      }
-      try {
-        var saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
-        if (Array.isArray(saved.items)) items = saved.items.filter(function (s) { return typeof s === "string" && s; });
-        if (Array.isArray(saved.history)) history = saved.history.slice(0, DECAY.length);
-        if (typeof saved.weighted === "boolean") weighted = saved.weighted;
-        if (saved.mode === "ladder" || saved.mode === "wheel") mode = saved.mode;
-        if (saved.theme) theme = saved.theme;
-        // 오늘만 빼둔 목록은 날짜가 바뀌면 저절로 풀린다
-        if (saved.skipDate === today() && Array.isArray(saved.skipped)) {
-          skipped = saved.skipped;
-          skipDate = saved.skipDate;
+        var shared = S().groupShared;
+        var at = -1;
+        groups.forEach(function (g, i) { if (g.name === shared) at = i; });
+        if (at === -1) {
+          groups.push({ name: shared, items: fromHash, skipped: [], skipDate: "", history: [] });
+          at = groups.length - 1;
+        } else {
+          groups[at].items = fromHash;
         }
-      } catch (e) { /* 무시 */ }
+        loadGroup(at);
+      }
     }
 
     function readHash() {
@@ -3061,6 +3343,7 @@
     load();
     buildMenu();
     buildThemeMenu();
+    renderTabs();
     applyTheme();
     hintKey = activeItems().length >= 2 ? "hintReady" : "hintStart";
     applyLang();
