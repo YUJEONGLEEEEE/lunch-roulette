@@ -39,11 +39,15 @@
     --blob-a: rgba(0, 122, 255, .40);
     --blob-b: rgba(255, 45, 85, .30);
     --blob-c: rgba(88, 86, 214, .34);
-    --g-top: .72;
-    --g-mid: .56;
-    --g-bot: .64;
+    --g-1: rgba(255, 255, 255, .72);
+    --g-2: rgba(255, 255, 255, .56);
+    --g-3: rgba(255, 255, 255, .64);
     --g-edge: rgba(255, 255, 255, .8);
     --g-sheen: rgba(255, 255, 255, .9);
+    --g-inner: rgba(255, 255, 255, .12);
+    --g-floor: rgba(0, 0, 0, .22);
+    --g-bright: brightness(1.04);
+    --seg-on: rgba(255, 255, 255, .95);
     --shadow: 0 .5px 1px rgba(0, 0, 0, .04), 0 8px 24px -10px rgba(0, 0, 0, .16);
     --shadow-lift: 0 1px 2px rgba(0, 0, 0, .06), 0 24px 56px -20px rgba(0, 0, 0, .28);
 
@@ -73,14 +77,18 @@
       --on-deep: #000000;
       --metal-a: rgba(72, 72, 74, .92);
       --metal-b: rgba(28, 28, 30, .8);
-      --blob-a: rgba(10, 132, 255, .46);
-      --blob-b: rgba(255, 55, 95, .32);
-      --blob-c: rgba(94, 92, 230, .38);
-      --g-top: .16;
-      --g-mid: .07;
-      --g-bot: .12;
-      --g-edge: rgba(255, 255, 255, .16);
-      --g-sheen: rgba(255, 255, 255, .22);
+      --blob-a: rgba(10, 132, 255, .28);
+      --blob-b: rgba(255, 55, 95, .18);
+      --blob-c: rgba(94, 92, 230, .24);
+      --g-1: rgba(68, 68, 74, .80);
+      --g-2: rgba(40, 40, 46, .64);
+      --g-3: rgba(28, 28, 33, .72);
+      --g-edge: rgba(255, 255, 255, .13);
+      --g-sheen: rgba(255, 255, 255, .16);
+      --g-inner: rgba(255, 255, 255, .05);
+      --g-floor: rgba(0, 0, 0, .45);
+      --g-bright: brightness(.92);
+      --seg-on: rgba(99, 99, 105, .95);
       --shadow: 0 .5px 1px rgba(0, 0, 0, .5), 0 8px 24px -10px rgba(0, 0, 0, .7);
       --shadow-lift: 0 1px 2px rgba(0, 0, 0, .6), 0 24px 56px -20px rgba(0, 0, 0, .85);
     }
@@ -105,14 +113,18 @@
     --on-deep: #000000;
     --metal-a: rgba(72, 72, 74, .92);
     --metal-b: rgba(28, 28, 30, .8);
-    --blob-a: rgba(10, 132, 255, .46);
-    --blob-b: rgba(255, 55, 95, .32);
-    --blob-c: rgba(94, 92, 230, .38);
-    --g-top: .16;
-    --g-mid: .07;
-    --g-bot: .12;
-    --g-edge: rgba(255, 255, 255, .16);
-    --g-sheen: rgba(255, 255, 255, .22);
+    --blob-a: rgba(10, 132, 255, .28);
+    --blob-b: rgba(255, 55, 95, .18);
+    --blob-c: rgba(94, 92, 230, .24);
+    --g-1: rgba(68, 68, 74, .80);
+    --g-2: rgba(40, 40, 46, .64);
+    --g-3: rgba(28, 28, 33, .72);
+    --g-edge: rgba(255, 255, 255, .13);
+    --g-sheen: rgba(255, 255, 255, .16);
+    --g-inner: rgba(255, 255, 255, .05);
+    --g-floor: rgba(0, 0, 0, .45);
+    --g-bright: brightness(.92);
+    --seg-on: rgba(99, 99, 105, .95);
     --shadow: 0 .5px 1px rgba(0, 0, 0, .5), 0 8px 24px -10px rgba(0, 0, 0, .7);
     --shadow-lift: 0 1px 2px rgba(0, 0, 0, .6), 0 24px 56px -20px rgba(0, 0, 0, .85);
   }
@@ -183,18 +195,14 @@
      반투명 채움 + 배경 굴절(blur·saturate) + 위쪽 스페큘러 하이라이트 +
      테두리 광택 + 바닥 그림자. 다섯 겹이 모여야 유리로 읽힌다 */
   .glass {
-    background:
-      linear-gradient(155deg,
-        rgba(255, 255, 255, var(--g-top)) 0%,
-        rgba(255, 255, 255, var(--g-mid)) 46%,
-        rgba(255, 255, 255, var(--g-bot)) 100%);
-    backdrop-filter: blur(28px) saturate(210%) brightness(1.04);
-    -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(1.04);
+    background: linear-gradient(155deg, var(--g-1) 0%, var(--g-2) 46%, var(--g-3) 100%);
+    backdrop-filter: blur(28px) saturate(210%) var(--g-bright);
+    -webkit-backdrop-filter: blur(28px) saturate(210%) var(--g-bright);
     border: .5px solid var(--g-edge);
     box-shadow:
       inset 0 1px 0 var(--g-sheen),
-      inset 0 0 0 .5px rgba(255, 255, 255, .12),
-      inset 0 -14px 26px -20px rgba(0, 0, 0, .22),
+      inset 0 0 0 .5px var(--g-inner),
+      inset 0 -14px 26px -20px var(--g-floor),
       var(--shadow);
   }
 
@@ -207,28 +215,35 @@
     gap: 30px;
   }
 
-  /* ─── masthead ─── */
-  .masthead {
+  /* ─── 상단 유리 바 — 내용이 이 아래로 지나간다 ─── */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 6;
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    gap: 16px 24px;
+    gap: 12px 20px;
+    margin: -44px -20px 0;
+    padding: 14px 20px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
   }
-
-  .masthead-text { display: flex; flex-direction: column; gap: 6px; flex: 1 1 320px; min-width: 0; }
 
   h1 {
     font-family: var(--display);
     font-weight: 700;
-    font-size: clamp(1.75rem, 5.4vw, 2.125rem);
+    font-size: clamp(1.5rem, 4.6vw, 1.9rem);
     letter-spacing: -.028em;
     line-height: 1.08;
     text-wrap: balance;
     margin: 0;
   }
 
-  .dek { margin: 0; max-width: 42ch; color: var(--ink-2); font-size: 15px; line-height: 1.45; }
+  .dek { margin: -12px 0 0; max-width: 42ch; color: var(--ink-2); font-size: 15px; line-height: 1.45; }
 
   /* ─── header tools ─── */
   .masthead-tools { display: flex; align-items: center; gap: 8px; flex: none; }
@@ -336,6 +351,15 @@
 
   @media (max-width: 860px) { .stage { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
 
+  /* 넓은 화면에서는 원판이 패널 왼쪽 가장자리 아래로 파고든다 —
+     유리 너머로 조각 색이 번지는 것이 보인다 */
+  @media (min-width: 1000px) {
+    .stage { grid-template-columns: minmax(0, 1fr) minmax(300px, .84fr); }
+    .wheel-col { position: relative; z-index: 1; }
+    .wheel-wrap { max-width: 468px; }
+    .panel { margin-left: -52px; position: relative; z-index: 2; }
+  }
+
   /* ─── segmented control ─── */
   .mode-switch {
     display: inline-flex;
@@ -359,8 +383,8 @@
   }
 
   .mode-btn[aria-pressed="true"] {
-    background: rgba(255, 255, 255, .92);
-    color: #000;
+    background: var(--seg-on);
+    color: var(--ink);
     box-shadow: 0 .5px 2px rgba(0, 0, 0, .14), 0 4px 10px -4px rgba(0, 0, 0, .2);
   }
 
@@ -972,11 +996,8 @@
 </head>
 <body>
 <div class="page">
-  <header class="masthead">
-    <div class="masthead-text">
-      <h1 data-i18n="title">오늘 뭐 먹지?</h1>
-      <p class="dek" data-i18n="dek">가고 싶은 식당을 적고 한 번 돌리면 끝.</p>
-    </div>
+  <header class="topbar glass">
+    <h1 data-i18n="title">오늘 뭐 먹지?</h1>
     <div class="masthead-tools">
     <div class="theme-pick" id="theme-pick">
       <button class="icon-btn glass" id="theme-toggle" type="button" aria-haspopup="true" aria-expanded="false" data-i18n-aria="theme">
@@ -1002,6 +1023,8 @@
     </div>
     </div>
   </header>
+
+  <p class="dek" data-i18n="dek">가고 싶은 식당을 적고 한 번 돌리면 끝.</p>
 
   <div class="stage">
     <div class="wheel-col">
@@ -1133,7 +1156,8 @@
       "ground", "ground-2", "surface", "surface-2", "glass", "glass-line",
       "ink", "ink-2", "ink-3", "line", "line-strong",
       "accent", "accent-soft", "accent-ink", "deep", "on-deep",
-      "metal-a", "metal-b", "blob-a", "blob-b", "shadow", "shadow-lift"
+      "metal-a", "metal-b", "blob-a", "blob-b", "blob-c", "shadow", "shadow-lift",
+      "g-1", "g-2", "g-3", "g-edge", "g-sheen", "g-inner", "g-floor", "g-bright", "seg-on"
     ];
 
     var THEMES = [
@@ -1200,7 +1224,12 @@
           accent: "#0A84FF", "accent-soft": "rgba(10,132,255,.24)", "accent-ink": "#FFFFFF",
           deep: "#30D158", "on-deep": "#000000",
           "metal-a": "rgba(72,72,74,.92)", "metal-b": "rgba(28,28,30,.8)",
-          "blob-a": "rgba(10,132,255,.3)", "blob-b": "rgba(255,55,95,.2)",
+          "blob-a": "rgba(10,132,255,.28)", "blob-b": "rgba(255,55,95,.18)",
+          "blob-c": "rgba(94,92,230,.24)",
+          "g-1": "rgba(68,68,74,.80)", "g-2": "rgba(40,40,46,.64)", "g-3": "rgba(28,28,33,.72)",
+          "g-edge": "rgba(255,255,255,.13)", "g-sheen": "rgba(255,255,255,.16)",
+          "g-inner": "rgba(255,255,255,.05)", "g-floor": "rgba(0,0,0,.45)",
+          "g-bright": "brightness(.92)", "seg-on": "rgba(99,99,105,.95)",
           shadow: "0 .5px 1px rgba(0,0,0,.5), 0 8px 24px -10px rgba(0,0,0,.7)",
           "shadow-lift": "0 1px 2px rgba(0,0,0,.6), 0 24px 56px -20px rgba(0,0,0,.85)"
         },
